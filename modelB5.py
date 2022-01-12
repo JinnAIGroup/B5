@@ -333,19 +333,19 @@ if __name__=="__main__":
     rnn_state_shape = (512)
     num_classes = 6
 
-    #model = get_model(img_shape, desire_shape, traffic_convection_shape, rnn_state_shape, num_classes)
+    model = get_model(img_shape, desire_shape, traffic_convection_shape, rnn_state_shape, num_classes)
     #model.summary()
 
-    #model.save('./saved_model/modelB5.h5')
+    model.save('./saved_model/modelB5.h5')
       # for converting to onnx
     #model = keras.models.load_model("./saved_model/modelB5.h5")
     #tf.saved_model.save(model, "./saved_model/modelB5_onnx")
       # $python3 -m tf2onnx.convert --saved-model ./saved_model/modelB5_onnx --output "./saved_model/modelB5.onnx"
 
     #(YPN) jinn@Liu:~/YPN/B5$ sudo pip install onnx
-    import onnx
-    import keras2onnx
-    onnx_model_name = 'modelB5.onnx'
-    model = load_model('./saved_model/modelB5.h5')
-    onnx_model = keras2onnx.convert_keras(model, model.name)
+    #import onnx
+    #import keras2onnx
+    #onnx_model_name = 'modelB5.onnx'
+    #model = load_model('./saved_model/modelB5.h5')
+    #onnx_model = keras2onnx.convert_keras(model, model.name)
     onnx.save_model(onnx_model, onnx_model_name)
