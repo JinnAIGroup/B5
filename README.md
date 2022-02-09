@@ -23,4 +23,4 @@ Do [Step 1](https://docs.google.com/document/d/1tH6coTWyIQ3QZUrmNFav6xfYn9PV-mGk
 ### Step 6. Deploy Model
 [h5topbB5.py](https://github.com/JinnAIGroup/B5/blob/main/h5topbB5.py) => modelB5.pb => modelB5.dlc => modelB5.html
 ([SNPE](https://docs.google.com/document/d/1x1OMnGbGKDapQEBx4xNi2VEwYRL0_XFLZZZDvE8Vefo/edit) =>
-[Run on C2](https://github.com/JinnAIGroup/CAN/blob/main/zcCS7.py) => [Self-Driving](https://drive.google.com/file/d/10Rp19QgbRTYRh1dflaPtOj72Tc1aB7pv/view?usp=sharing))
+[Self-Driving](https://drive.google.com/file/d/10Rp19QgbRTYRh1dflaPtOj72Tc1aB7pv/view?usp=sharing))
