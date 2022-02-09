@@ -3,7 +3,7 @@ Convert video.hevc to yuv.h5
   hevc =>  bRGB (874, 1164, 3) = (H, W, C) <=> bYUV (1311, 1164) <=>  CbYUV (6, 291, 582) = (C, H, W) [key: 1311 =  874x3/2]
            sRGB (256,  512, 3) = (H, W, C) <=> sYUV  (384,  512) <=>  CsYUV (6, 128, 256) = (C, H, W) [key:  384 =  256x3/2]
 
-(OP082) jinn@Liu:~/openpilot/tools/lib$ python hevc2yuvh5B5.py
+(OP082) jinn@Liu:~/openpilot/tools/lib$ python hevc2yuvh5.py
 Input:
   /home/jinn/dataB/UHD--2018-08-02--08-34-47--32/video.hevc
   /home/jinn/dataB/UHD--2018-08-02--08-34-47--33/video.hevc
