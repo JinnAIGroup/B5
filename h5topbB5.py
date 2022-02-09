@@ -1,34 +1,25 @@
-'''    YPL, JLL, YJW, 2021.12.30
---- from h5 to pb
+'''    YPL, JLL, YJW, 2021.9.17 - 2022.2.8
+--- Step 1: from h5 to pb
 (YPN) jinn@Liu:~/YPN/B5$ python h5topbB5.py modelB5.pb
 ----- Frozen pb model inputs needed for converting pb to dlc:
-[<tf.Tensor 'Input:0' shape=(None, 12, 128, 256) dtype=float32>, <tf.Tensor 'Input_1:0' shape=(None, 8) dtype=float32>, <tf.Tensor 'Input_2:0' shape=(None, 2) dtype=float32>, <tf.Tensor 'Input_3:0' shape=(None, 512) dtype=float32>]
+[<tf.Tensor 'Input:0' shape=(None, 12, 128, 256) dtype=float32>,
+ <tf.Tensor 'Input_1:0' shape=(None, 8) dtype=float32>,
+ <tf.Tensor 'Input_2:0' shape=(None, 2) dtype=float32>,
+ <tf.Tensor 'Input_3:0' shape=(None, 512) dtype=float32>]
 ----- Frozen pb model outputs needed for converting pb to dlc:
 [<tf.Tensor 'Identity:0' shape=(None, 2383) dtype=float32>]
 ----- OK: pb is saved in ./saved_model
 
---- from pb to onnx (failed)
-(YPN) jinn@Liu:~/YPN/B5$ sudo pip install git+https://github.com/onnx/tensorflow-onnx
-(YPN) jinn@Liu:~/YPN$ git clone https://github.com/onnx/tensorflow-onnx
-(YPN) jinn@Liu:~/YPN/tensorflow-onnx$ python setup.py install
-(YPN) jinn@Liu:~/YPN/tensorflow-onnx$ python setup.py develop
-(YPN) jinn@Liu:~/YPN/tensorflow-onnx$ python setup.py bdist_wheel
-(YPN) jinn@Liu:~/YPN$ sudo pip install onnx
+--- Step 2: move /home/jinn/YPN/B5/saved_model/modelB5.pb to /home/jinn/snpe/dlc/modelB5.pb
 
-(YPN) jinn@Liu:~/YPN/B5$ python -m tf2onnx.convert --input ./saved_model/modelB5.pb  \
---inputs Input_1:0,Input_1:0,Input_2:0,Input_3:0 \
---outputs Identity:0 --output ./saved_model/modelB5.onnx
-
-ModuleNotFoundError: No module named 'onnx'
-
---- from pb to dlc
+--- Step 3: from pb to dlc
 (snpe) jinn@Liu:~/snpe$ export ANDROID_NDK_ROOT=android-ndk-r22b
 (snpe) jinn@Liu:~/snpe$ source snpe-1.48.0.2554/bin/envsetup.sh -t snpe-1.48.0.2554
 (snpe) jinn@Liu:~/snpe$ snpe-tensorflow-to-dlc --input_network ./dlc/modelB5.pb \
 --input_dim Input "1,12,128,256" --input_dim Input_1 "1,8" --input_dim Input_2 "1,2" --input_dim Input_3 "1,512" \
 --out_node "Identity" --output_path ./dlc/modelB5.dlc
 
---- from dlc to html
+--- Step 4: from dlc to html
 (snpe) jinn@Liu:~/snpe/dlc$ snpe-dlc-viewer -i modelB5.dlc
 '''
 import os

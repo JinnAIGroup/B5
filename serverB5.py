@@ -1,4 +1,5 @@
-"""   JLL, SLT, 2021.12.30
+"""   YPL, JLL, 2021.9.14 - 2022.1.26
+(YPN) jinn@Liu:~/YPN/B5$ python serverB5.py
 """
 import os
 import zmq
@@ -7,8 +8,8 @@ import numpy
 import random
 import logging
 import argparse
-from datagenB5 import datagen
 from numpy.lib.format import header_data_from_array_1_0
+from datagenB5 import datagen
 
 BATCH_SIZE = 16
 
@@ -85,32 +86,31 @@ def start_server(data_stream, port=5557, hwm=20):
     send_arrays(socket, data, stop=stop)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Data Server')
-    parser.add_argument('--port', dest='port', type=int, default=5557, help='Port of the ZMQ server')
-    parser.add_argument('--buffer', dest='buffer', type=int, default=20, help='High-water mark. Increasing this increses buffer and memory usage.')
-    parser.add_argument('--validation', dest='validation', action='store_true', default=False, help='Serve validation dataset instead.')
-    args, more = parser.parse_known_args()
+  parser = argparse.ArgumentParser(description='Data Server')
+  parser.add_argument('--port', dest='port', type=int, default=5557, help='Port of the ZMQ server')
+  parser.add_argument('--buffer', dest='buffer', type=int, default=20, help='High-water mark. Increasing this increses buffer and memory usage.')
+  parser.add_argument('--validation', dest='validation', action='store_true', default=False, help='Serve validation dataset instead.')
+  args, more = parser.parse_known_args()
 
-      # Project B Part
-    all_dirs = os.listdir('/home/jinn/dataB')
-    all_yuvs = ['/home/jinn/dataB/'+i+'/yuv.h5' for i in all_dirs]
-      #print('#---  all_yuvs =', all_yuvs)
-    random.seed(0) # makes the random numbers predictable
-    random.shuffle(all_yuvs)
+    # Project B Part
+  all_dirs = os.listdir('/home/jinn/dataB')
+  all_yuvs = ['/home/jinn/dataB/'+i+'/yuv.h5' for i in all_dirs]
+    #print('#---  all_yuvs =', all_yuvs)
+  random.seed(0) # makes the random numbers predictable
+  random.shuffle(all_yuvs)
 
-    train_len  = int(0.5*len(all_yuvs))
-    valid_len  = int(0.5*len(all_yuvs))
-    train_files = all_yuvs[: train_len]
-    valid_files = all_yuvs[train_len: train_len + valid_len]
-    print('#---serverB5  len(all_yuvs) =', len(all_yuvs))
-    print('#---serverB5  len(train_files) =', len(train_files))
-    print('#---serverB5  len(valid_files) =', len(valid_files))
+  train_len  = int(0.5*len(all_yuvs))
+  valid_len  = int(0.5*len(all_yuvs))
+  train_files = all_yuvs[: train_len]
+  valid_files = all_yuvs[train_len: train_len + valid_len]
+  print('#---serverB5  len(all_yuvs) =', len(all_yuvs))
+  print('#---serverB5  len(train_files) =', len(train_files))
+  print('#---serverB5  len(valid_files) =', len(valid_files))
 
-    if args.validation:
-        camera_files = valid_files
-    else:
-        camera_files = train_files
+  if args.validation:
+      camera_files = valid_files
+  else:
+      camera_files = train_files
 
-    print('#---serverB5  camera_files =', camera_files)
-    data_s = datagen(BATCH_SIZE, camera_files)
-    start_server(data_s, port=args.port, hwm=args.buffer)
+  data_s = datagen(BATCH_SIZE, camera_files)
+  start_server(data_s, port=args.port, hwm=args.buffer)
