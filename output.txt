@@ -1,0 +1,62 @@
+JLL, 2021.8.18, 12.6, 2022.2.8
+
+FULL_FRAME_SIZE = (1164, 874)
+W, H = FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1]
+eon_focal_length = FOCAL = 910.0
+cv2.COLOR_BGR2YUV_I420
+
+---JLL   frame.shape          =  (874, 1164, 3)   # RGB
+---JLL   img_yuv.shape        =  (1311, 1164)     # 874*3//2 = 1311
+---JLL   img_yuv.reshape      =  (1311, 1164)     # 1311×1164 = 1,526,004
+---JLL   imgs.shape           =  (20, 1311, 1164)
+---JLL   imgs_med_model.shape =  (20, 384, 512)
+---JLL   np.array(imgs_med_model).shape              =  (20, 384, 512)     # 384 = 3 RGB Channels x 128?
+---JLL   frame_tensors.shape                         =  (20, 6, 128, 256)  # /128.0?
+---JLL   frame_tensors[i:i+2].shape                  =  (2, 6, 128, 256)
+---JLL   np.vstack(frame_tensors[i:i+2]).shape       =  (12, 128, 256)
+---JLL   np.vstack(frame_tensors[i:i+2])[None].shape =  (1, 12, 128, 256)
+---JLL   inputs[ 0 ].shape =  (1, 12, 128, 256)   # 12 = 2 frames x 6 channels (YUV_I420: Y=4, U=1, V=1) Wrong?!
+---JLL   inputs[ 1 ].shape =  (1, 8)              # output_size=(512,256)/2 => 128, 256 => (20, 384=128x3?, 512)
+---JLL   inputs[ 2 ].shape =  (1, 512)            # 12 = 2 frames x 3 RGB channels x 3 (128)
+#---  outs[ 0 ].shape = (1, 385)
+#---  outs[ 1 ].shape = (1, 386)
+#---  outs[ 2 ].shape = (1, 386)
+#---  outs[ 3 ].shape = (1, 58)
+#---  outs[ 4 ].shape = (1, 200)
+#---  outs[ 5 ].shape = (1, 200)
+#---  outs[ 6 ].shape = (1, 200)
+#---  outs[ 7 ].shape = (1, 8)
+#---  outs[ 8 ].shape = (1, 4)
+#---  outs[ 9 ].shape = (1, 32)
+#---  outs[ 10 ].shape = (1, 12)
+#---  outs[ 11 ].shape = (1, 512)
+---JLL   parsed[ path             ].shape =  (1, 192)
+---JLL   parsed[ path_stds        ].shape =  (1, 192)
+---JLL   parsed[ lll              ].shape =  (1, 192)
+---JLL   parsed[ lll_prob         ].shape =  (1,)
+---JLL   parsed[ lll_stds         ].shape =  (1, 192)
+---JLL   parsed[ rll              ].shape =  (1, 192)
+---JLL   parsed[ rll_prob         ].shape =  (1,)
+---JLL   parsed[ rll_stds         ].shape =  (1, 192)
+---JLL   parsed[ lead_xyva        ].shape =  (1, 4)
+---JLL   parsed[ lead_xyva_std    ].shape =  (1, 4)
+---JLL   parsed[ lead_prob        ].shape =  (1,)
+---JLL   parsed[ lead_xyva_2s     ].shape =  (1, 4)
+---JLL   parsed[ lead_xyva_std_2s ].shape =  (1, 4)
+---JLL   parsed[ lead_prob_2s     ].shape =  (1,)
+---JLL   parsed[ lead_all         ].shape =  (1, 58)
+---JLL   parsed[ meta             ].shape =  (1, 32)
+---JLL   parsed[ desire           ].shape =  (1, 12)
+---JLL   parsed[ desire_state     ].shape =  (1, 4)
+---JLL   parsed[ long_x           ].shape =  (1, 200)
+---JLL   parsed[ long_v           ].shape =  (1, 200)
+---JLL   parsed[ long_a           ].shape =  (1, 200)
+---JLL   parsed[ trans            ].shape =  (1, 3)
+---JLL   parsed[ trans_std        ].shape =  (1, 3)
+---JLL   parsed[ rot              ].shape =  (1, 3)
+---JLL   parsed[ rot_std          ].shape =  (1, 3)
+---JLL   state.shape            =  (1, 512)
+---JLL   pose.shape             =  (1, 12)
+---JLL   frame.cv2.resize.shape =  (420, 640, 3)
+Press ENTER twice to close all windows ...
+Press ENTER to exit ...

@@ -1,5 +1,11 @@
-'''   HC, JLL, 2021.09.15, 11.19, 12.30
+'''   HC, JLL, 2021.8.14 - 2022.2.9
 (YPN) jinn@Liu:~/YPN/Leon$ python simulatorB5.py ./fcamera.hevc
+Input:
+  /home/jinn/YPN/Leon/models/modelB5.h5
+  /home/jinn/YPN/Leon/fcamera.hevc
+Output:
+  modelB5.h5 imitates supercombo079.keras and predicts path drawn on fcamera.hevc
+  parserB5 parses the 12 outputs of modelB5 running on fcamera.hevc
 '''
 import os
 import sys
@@ -13,35 +19,29 @@ from common.transformations.model import medmodel_intrinsics
 from common.lanes_image_space import transform_points
 from parserB5 import parser
 
-PATH_IDX   = 0      # 192*2+1 = 385
-LL_IDX     = 385    # 192*2+2 = 386
-RL_IDX     = 771    # 192*2+2 = 386
-LEAD_IDX   = 1157   # 11*5+3 = 58
-LONG_X_IDX = 1215   # 100*2 = 200
-LONG_V_IDX = 1415   # 100*2 = 200
-LONG_A_IDX = 1615   # 100*2 = 200
-DESIRE_IDX = 1815   # 8
-META_IDX   = 1823   # 4
-PRED_IDX   = 1827   # 32
-POSE_IDX   = 1859   # 12
-STATE_IDX  = 1871   # 512
+PATH_IDX   = 0      # o1:  192*2+1 = 385
+LL_IDX     = 385    # o2:  192*2+2 = 386
+RL_IDX     = 771    # o3:  192*2+2 = 386
+LEAD_IDX   = 1157   # o4:  11*5+3 = 58
+LONG_X_IDX = 1215   # o5:  100*2 = 200
+LONG_V_IDX = 1415   # o6:  100*2 = 200
+LONG_A_IDX = 1615   # o7:  100*2 = 200
+DESIRE_IDX = 1815   # o8:  8
+META_IDX   = 1823   # o9:  4
+PRED_IDX   = 1827   # o10: 32
+POSE_IDX   = 1859   # o11: 12
+STATE_IDX  = 1871   # o12: 512
 OUTPUT_IDX = 2383
 
 camerafile = sys.argv[1]
-supercombo = load_model('models/modelB5.h5', compile = False)   # 1 out = (1, 2383)
+supercombo = load_model('models/supercombo079.keras', compile = False)   # 12 outs
 '''
 supercombo = load_model('models/modelB5.h5', compile = False)   # 1 out = (1, 2383)
-  Error:
-  /home/jinn/YPN/Leon/common/lanes_image_space.py:89: RuntimeWarning: divide by zero encountered in double_scalars
-    p_image = p_full_frame = np.array([KEp[0] / KEp[2], KEp[1] / KEp[2], 1.])
-  99 :  new_x_path =  [567.5291180491137, 564.9207628132039, 569.2374128957745] parsed["path"][0] =  [0.01306065 0.0085456  0.03807979]
-supercombo = load_model('models/JL11_dlc_model.h5', compile = False)   # 11 outs
-  /home/jinn/YPN/Leon/common/lanes_image_space.py:89: RuntimeWarning: divide by zero encountered in double_scalars
-    p_image = p_full_frame = np.array([KEp[0] / KEp[2], KEp[1] / KEp[2], 1.])
-  99 :  new_x_path =  [571.8503966928305, 571.7481973882532, 575.5411138895821] parsed["path"][0] =  [0.00196582 0.07565063 0.00489863]
+  99 :  new_x_path =  [567.7336717867292, 625.5671301933083, 552.933855447142] parsed["path"][0] =  [ 0.23713899  0.16713709 -0.5016851 ]
 supercombo = load_model('models/supercombo079.keras', compile = False)   # 12 outs
-  /home/jinn/YPN/Leon/common/lanes_image_space.py:89: RuntimeWarning: divide by zero encountered in double_scalars
-    p_image = p_full_frame = np.array([KEp[0] / KEp[2], KEp[1] / KEp[2], 1.])
+  Error:
+    /home/jinn/YPN/Leon/common/lanes_image_space.py:89: RuntimeWarning: divide by zero encountered in double_scalars
+      p_image = p_full_frame = np.array([KEp[0] / KEp[2], KEp[1] / KEp[2], 1.])
   99 :  new_x_path =  [699.0010597977995, 666.3408217211254, 646.5449165835355] parsed["path"][0] =  [-0.3373536 -0.3910733 -0.4009965]
 '''
 #print(supercombo.summary())
@@ -84,7 +84,6 @@ else:
     #--- imgs_med_model.shape = (2, 384, 512)
 
 fig = plt.figure('OPNet Simulator')
-#plt.subplots_adjust( left=0.1, right=1.5, top=1.5, bottom=0.1, wspace=0.2, hspace=0.2)
 
 while True:
   (ret, current_frame) = cap.read()
@@ -99,12 +98,7 @@ while True:
                                     output_size=(512,256))
 
   if frame_no > 0:
-    plt.clf()
-    plt.title("lanes and path")
-    plt.xlim(0, 1200)
-    plt.ylim(800, 0)
-
-    #frame_tensors = frames_to_tensor(np.array(imgs_med_model)).astype(np.float32)/128.0 - 1.0
+      #frame_tensors = frames_to_tensor(np.array(imgs_med_model)).astype(np.float32)/128.0 - 1.0
     frame_tensors = frames_to_tensor(np.array(imgs_med_model)).astype(np.float32)
       #--- frame_tensors.shape = (2, 6, 128, 256)
     inputs = [np.vstack(frame_tensors[0:2])[None], desire, traffic_convection, state]
@@ -135,6 +129,8 @@ while True:
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     plt.clf()
+    plt.xlim(0, 1200)
+    plt.ylim(800, 0)
     ##################
     plt.subplot(221)
     plt.title("Overlay Scene")
@@ -179,9 +175,8 @@ while True:
     plt.plot(parsed["path"][0], range(0, 192), "g-", linewidth=1)
       # rll = right lane line
     plt.plot(parsed["rll"][0], range(0, 192), "b-", linewidth=1)
-
-    #plt.legend(['lll', 'rll', 'path'])
-      # Needed to invert axis because standart left lane is positive and right lane is negative, so we flip the x axis
+      #plt.legend(['lll', 'rll', 'path'])
+        # Needed to invert axis because standart left lane is positive and right lane is negative, so we flip the x axis
 
     if frame_no < 100:
         print(frame_no,': ','new_x_path = ', new_x_path[:3], 'parsed["path"][0] = ', parsed["path"][0][:3]) # check update. 2021.12.06
