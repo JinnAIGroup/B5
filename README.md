@@ -5,7 +5,7 @@ Do [Step 1](https://docs.google.com/document/d/1tH6coTWyIQ3QZUrmNFav6xfYn9PV-mGk
 
 ## Project B5
 ### Step 1. Prepare Data 
-[fcamera.hevc](https://drive.google.com/file/d/1GOOD4IhagzsaB_HsC6cvavKj1lLcD0nb/view?usp=sharing)
+[fcamera.hevc](https://drive.google.com/file/d/1GOOD4IhagzsaB_HsC6cvavKj1lLcD0nb/view?usp=sharing) => 
 [hevc2yuvh5.py](https://github.com/JinnAIGroup/B5/blob/main/hevc2yuvh5.py) => yuv.h5
 
 [rlog.bz2](https://drive.google.com/file/d/1GOOD4IhagzsaB_HsC6cvavKj1lLcD0nb/view?usp=sharing)
