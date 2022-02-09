@@ -1,4 +1,4 @@
-# ModelB5 = EfficientNet + RNN + PoseNet for Self-Driving Cars
+# ModelB5 for Self-Driving Cars
 
 ## Installation
 Do [Step 1](https://docs.google.com/document/d/1tH6coTWyIQ3QZUrmNFav6xfYn9PV-mGk2FiN3yYW_IY/edit?usp=sharing) and [Step 2](https://docs.google.com/document/d/1x1OMnGbGKDapQEBx4xNi2VEwYRL0_XFLZZZDvE8Vefo/edit)
