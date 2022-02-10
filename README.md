@@ -19,7 +19,7 @@
 ### Step 6. Verify Model
 [simulatorB5.py](https://github.com/JinnAIGroup/B5/blob/main/simulatorB5.py) => 
 [output.txt](https://github.com/JinnAIGroup/B5/blob/main/output.txt) => 
-[Horace](https://docs.google.com/presentation/d/1S0xFpluCefNjDe3FC8mo8uWeP91X2v7C/edit?usp=sharing&ouid=117467329867185057226&rtpof=true&sd=true)
+[Horace](https://drive.google.com/file/d/15RyzVCR_greK_NXDm_AcLsLmEsqg-e9d/view?usp=sharing)
 ### Step 7. [Install SNPE](https://docs.google.com/document/d/1x1OMnGbGKDapQEBx4xNi2VEwYRL0_XFLZZZDvE8Vefo/edit)
 ### Step 8. Deploy Model
 [h5topbB5.py](https://github.com/JinnAIGroup/B5/blob/main/h5topbB5.py) => modelB5.pb => modelB5.dlc => modelB5.html =>
