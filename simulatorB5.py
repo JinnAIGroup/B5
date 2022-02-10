@@ -34,7 +34,7 @@ STATE_IDX  = 1871   # o12: 512
 OUTPUT_IDX = 2383
 
 camerafile = sys.argv[1]
-supercombo = load_model('models/supercombo079.keras', compile = False)   # 12 outs
+supercombo = load_model('models/modelB5.h5', compile = False)   # 1 out = (1, 2383)
 '''
 supercombo = load_model('models/modelB5.h5', compile = False)   # 1 out = (1, 2383)
   99 :  new_x_path =  [567.7336717867292, 625.5671301933083, 552.933855447142] parsed["path"][0] =  [ 0.23713899  0.16713709 -0.5016851 ]
