@@ -19,7 +19,9 @@ Do [Step 1](https://docs.google.com/document/d/1tH6coTWyIQ3QZUrmNFav6xfYn9PV-mGk
 [train_modelB5.py](https://github.com/JinnAIGroup/B5/blob/main/train_modelB5.py) => modelB5.h5 => outputs:
 [plot_txtB5.py](https://github.com/JinnAIGroup/B5/blob/main/plot_txtB5.py) 
 ### Step 5. Verify Model
-[simulatorB5.py](https://github.com/JinnAIGroup/B5/blob/main/simulatorB5.py) => [Horace](https://docs.google.com/presentation/d/1S0xFpluCefNjDe3FC8mo8uWeP91X2v7C/edit?usp=sharing&ouid=117467329867185057226&rtpof=true&sd=true) => [output.txt](https://github.com/JinnAIGroup/B5/blob/main/output.txt)
+[simulatorB5.py](https://github.com/JinnAIGroup/B5/blob/main/simulatorB5.py) => 
+[output.txt](https://github.com/JinnAIGroup/B5/blob/main/output.txt) => 
+[Horace](https://docs.google.com/presentation/d/1S0xFpluCefNjDe3FC8mo8uWeP91X2v7C/edit?usp=sharing&ouid=117467329867185057226&rtpof=true&sd=true)
 ### Step 6. Deploy Model
 [h5topbB5.py](https://github.com/JinnAIGroup/B5/blob/main/h5topbB5.py) => modelB5.pb => modelB5.dlc => modelB5.html =>
 [Self-Driving](https://drive.google.com/file/d/10Rp19QgbRTYRh1dflaPtOj72Tc1aB7pv/view?usp=sharing)
