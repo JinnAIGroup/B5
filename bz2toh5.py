@@ -1,15 +1,15 @@
-"""   YPL, JLL, 2021.3.22 - 2022.2.14
+"""   YPL, JLL, 2021.3.22 - 2022.2.16
 bz2toh5.py generates training data from rlog.bz2 for train_model.py (e.g. modelB5)
 from /home/jinn/YPN/ypdesk/remove.py
 read /home/jinn/YPN/yp-Efficient1/bz2toh5_plot.py
 
 (OP082) jinn@Liu:~/openpilot/tools/lib$ python bz2toh5.py
 Input:
-  /home/jinn/dataA/8bfda98c9c9e4291|2020-05-11--03-00-57--61/rlog.bz2
+  /home/jinn/dataB/UHD--2018-08-02--08-34-47--32/raw_log.bz2
   /home/jinn/dataB/UHD--2018-08-02--08-34-47--32/global_pose
 Output:
-  /home/jinn/dataA/8bfda98c9c9e4291|2020-05-11--03-00-57--61/radar.h5
   /home/jinn/dataB/UHD--2018-08-02--08-34-47--32/pathdata.h5
+  /home/jinn/dataB/UHD--2018-08-02--08-34-47--32/radardata.h5
 """
 import os
 import h5py   # https://docs.h5py.org/en/stable/
@@ -88,9 +88,10 @@ def mkradar(files):
       #---  TData.rlog.bz2 does not have 'frame' but USAData.raw_log.bz2 does
 
     rcount = num_r - 1191  # -1191 produces very small .h5 for debugging
-    radar_file = f.replace('rlog.bz2', 'radar.h5')
+      #radar_file = f.replace('rlog.bz2', 'radar.h5')   # use /dataA
+    radar_file = f.replace('raw_rlog.bz2', 'radardata.h5')   # use /dataB
     radar = []
-    if not os.path.isfile(radar_file):   # if radar.h5 does not exist
+    if not os.path.isfile(radar_file):   # if radardata.h5 does not exist
         #for i in range(fcount):
       for i in range(rcount):
         radar.append(radarr[i])
@@ -106,7 +107,7 @@ def mkradar(files):
           else:
             prob = 1
           f1['LeadOne'][i] = [d, y, v, a, prob]
-    fh5 = h5py.File(radar_file, 'r')   # read radar.h5
+    fh5 = h5py.File(radar_file, 'r')   # read radardata.h5
       #--- list(fh5.keys()) = ['LeadOne']
     dataset = fh5['LeadOne']
       #--- dataset.shape = (10, 5)  # 10 = 1201 - 1191 (10 frames)
@@ -114,6 +115,10 @@ def mkradar(files):
       #print("    #--- dataset.dtype =", dataset.dtype)
 
 if __name__ == '__main__':
+  dirs1 = os.listdir('/home/jinn/dataB')
+  all_dirs = ['/home/jinn/dataB/'+ i +'/' for i in dirs1]
+  mkpath(all_dirs)   # use /dataB
+
   '''dirs = os.listdir('/home/jinn/dataA')
   dirs = ['/home/jinn/dataA/'+ i +'/' for i in dirs]
     #---  dirs = ['/home/jinn/dataA/8bfda98c9c9e4291|2020-05-11--03-00-57--61/']
@@ -124,10 +129,6 @@ if __name__ == '__main__':
     for f in files:
       all_files.append(f)
   mkradar(all_files)   # use /dataA'''
-
-  dirs1 = os.listdir('/home/jinn/dataB')
-  all_dirs = ['/home/jinn/dataB/'+ i +'/' for i in dirs1]
-  mkpath(all_dirs)   # use /dataB
 
 '''
 #---  len(new_list)  = 37
