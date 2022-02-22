@@ -39,6 +39,8 @@ s = np.sum(frame_velocities**2, axis=-1)
 s = s**0.5  # speed (m/sec)
   #---  s = [30.76645261 30.76602006 30.7712556  ... => about 108 km/h
 D = s*0.05  # Distance: FPS = 20 frames/second (Hertz (Hz)), dt = 1/20 => about 1.5 m between two frames
+velocities = np.linalg.norm(frame_velocities, axis=1)
+  #---  velocities = [30.76645261 30.76602006 30.7712556  ... 
 
 for i in range(len(s)):
   ecef_from_local = orient.rot_from_quat(frame_orientations[i])
