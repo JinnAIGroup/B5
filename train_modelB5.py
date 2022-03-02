@@ -1,5 +1,6 @@
-"""   YPL, JLL, 2021.9.8 - 2022.2.8
+"""   YPL, JLL, 2021.9.8 - 2022.3.1
 modelB5.dlc = supercombo079.dlc
+ignore valid_len in Lines 74, 110, 112, 157, 158 of datagenB5
 
 1. Tasks: temporal state (features) + path planning (PP)
    The temporal state (a 512 array) represents (are features of) all path planning details:
@@ -21,26 +22,8 @@ Run: on 3 terminals
 
 Training History:
   BATCH_SIZE = 16  EPOCHS = 2
-  2022.2.3 (B5)   out1: no normalization
-    #---  max of y_true, max index = 81.58935 (array([15]), array([242]))
-    #---  max of y_pred, max index = 81.73105 (array([10]), array([242]))
-    Epoch 00002: val_loss improved from 1.41168 to 1.40772, saving model to ./saved_model/modelB5-BestWeights.hdf5
-    71/71 [==============================] - 183s 3s/step -
-    loss: 2.5557 - rmse: 1.4936 - mae: 0.1834 - val_loss: 1.4077 - val_rmse: 1.1694 - val_mae: 0.1720
-  2022.2.2 (B5)   out2: normalize (/=10) and un-normalize (*=10)
-    #---  max of y_true, max index = 138.52 (array([8, 9]), array([1186, 1157]))
-    #---  max of y_pred, max index = 76.50992 (array([ 1,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15]), array([50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
-    Epoch 00002: val_loss improved from 1.37270 to 1.33507, saving model to ./saved_model/modelB5-BestWeights.hdf5
-    71/71 [==============================] - 190s 3s/step -
-    loss: 2.5874 - rmse: 1.5068 - mae: 0.1995 - val_loss: 1.3351 - val_rmse: 1.1434 - val_mae: 0.1813
-    Training Time: 00:06:20.49
-    See ./saved_model/modelB5_outs.png
 
 Road Tests:
-  2022.2.8 (modelB5C2C.dlc):
-    1. WANRNING: This branch is not tested
-    2. Lead car's red chevron always exists (radar error?)
-    3. My car quickly turned and stopped.
 """
 import os
 import h5py
@@ -74,34 +57,9 @@ def get_data(hwm, host, port, model):
 def custom_loss(y_true, y_pred):
     #---  y_true.shape = (None, None)
     #---  y_pred.shape = (None, 2383)
-    #---  y_true.shape[0] = None
     #---  y_true.shape = (16, 2383)
     #---  y_pred.shape = (16, 2383)
-    #---  y_true.shape[0] = 16
-  if y_true.shape[0] is not None:
-    print('\n#---  max of y_true, max index =', np.amax(y_true), np.where(y_true == np.amax(y_true)))
-    print('#---  max of y_pred, max index =', np.amax(y_pred), np.where(y_pred == np.amax(y_pred)))
-    y_true[:, 50:51]/=10      # normalize valid_len = 50
-    y_true[:, 242:243]/=10    # valid_len = 50+192 = 242
-    y_true[:, 1157:1158]/=10  # lcar's d = 385+386+386 = 1157
-    y_true[:, 1186:1187]/=10  # lcar's d = 1157+29 = 1186
-    y_pred[:, 50:51]/=10
-    y_pred[:, 242:243]/=10
-    y_pred[:, 1157:1158]/=10
-    y_pred[:, 1186:1187]/=10
-    ''''''
   loss = tf.keras.losses.mse(y_true, y_pred)
-
-  if y_true.shape[0] is not None:
-    y_true[:, 50:51]*=10   # un-normalize
-    y_true[:, 242:243]*=10
-    y_true[:, 1157:1158]*=10
-    y_true[:, 1186:1187]*=10
-    y_pred[:, 50:51]*=10
-    y_pred[:, 242:243]*=10
-    y_pred[:, 1157:1158]*=10
-    y_pred[:, 1186:1187]*=10
-    ''''''
   return loss
 
 if __name__=="__main__":

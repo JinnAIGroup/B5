@@ -1,4 +1,4 @@
-'''   HC, JLL, 2021.8.14 - 2022.2.9
+'''   HC, JLL, 2021.8.14 - 2022.3.1
 (YPN) jinn@Liu:~/YPN/Leon$ python simulatorB5.py ./fcamera.hevc
 Input:
   /home/jinn/YPN/Leon/models/modelB5.h5
@@ -19,22 +19,22 @@ from common.transformations.model import medmodel_intrinsics
 from common.lanes_image_space import transform_points
 from parserB5 import parser
 
-PATH_IDX   = 0      # o1:  192*2+1 = 385
-LL_IDX     = 385    # o2:  192*2+2 = 386
-RL_IDX     = 771    # o3:  192*2+2 = 386
-LEAD_IDX   = 1157   # o4:  11*5+3 = 58
-LONG_X_IDX = 1215   # o5:  100*2 = 200
-LONG_V_IDX = 1415   # o6:  100*2 = 200
-LONG_A_IDX = 1615   # o7:  100*2 = 200
-DESIRE_IDX = 1815   # o8:  8
-META_IDX   = 1823   # o9:  4
-PRED_IDX   = 1827   # o10: 32
-POSE_IDX   = 1859   # o11: 12
-STATE_IDX  = 1871   # o12: 512
+PATH_IDX   = 0      # o0:  192*2+1 = 385
+LL_IDX     = 385    # o1:  192*2+2 = 386
+RL_IDX     = 771    # o2:  192*2+2 = 386
+LEAD_IDX   = 1157   # o3:  11*5+3 = 58
+LONG_X_IDX = 1215   # o4:  100*2 = 200
+LONG_V_IDX = 1415   # o5:  100*2 = 200
+LONG_A_IDX = 1615   # o6:  100*2 = 200
+DESIRE_IDX = 1815   # o7:  8
+META_IDX   = 1823   # o8:  4
+PRED_IDX   = 1827   # o9:  32
+POSE_IDX   = 1859   # o10: 12
+STATE_IDX  = 1871   # o11: 512
 OUTPUT_IDX = 2383
 
 camerafile = sys.argv[1]
-supercombo = load_model('models/modelB5.h5', compile = False)   # 1 out = (1, 2383)
+supercombo = load_model('models/supercombo079.keras', compile = False)   # 12 outs
 '''
 supercombo = load_model('models/modelB5.h5', compile = False)   # 1 out = (1, 2383)
   99 :  new_x_path =  [567.7336717867292, 625.5671301933083, 552.933855447142] parsed["path"][0] =  [ 0.23713899  0.16713709 -0.5016851 ]
@@ -47,6 +47,7 @@ supercombo = load_model('models/supercombo079.keras', compile = False)   # 12 ou
 #print(supercombo.summary())
 
 def frames_to_tensor(frames):
+    #--- frames.shape = (2, 384, 512)
   H = (frames.shape[1]*2)//3
   W = frames.shape[2]
   in_img1 = np.zeros((frames.shape[0], 6, H//2, W//2), dtype=np.uint8)
@@ -65,7 +66,6 @@ traffic_convection = np.zeros((1,2))
 state = np.zeros((1,512))
 
 cap = cv2.VideoCapture(camerafile)
-fps = cap.get(cv2.CAP_PROP_FPS)
 
 x_left = x_right = x_path = np.linspace(0, 192, 192)
 
@@ -85,12 +85,12 @@ else:
 
 fig = plt.figure('OPNet Simulator')
 
-while True:
+#while True:
+for i in range(2):
   (ret, current_frame) = cap.read()
   if not ret:
        break
   frame_no += 1
-  #print ("#--- frame_no =", frame_no)
 
   frame = current_frame.copy()
   img_yuv = cv2.cvtColor(current_frame, cv2.COLOR_BGR2YUV_I420)
@@ -98,13 +98,28 @@ while True:
                                     output_size=(512,256))
 
   if frame_no > 0:
-      #frame_tensors = frames_to_tensor(np.array(imgs_med_model)).astype(np.float32)/128.0 - 1.0
-    frame_tensors = frames_to_tensor(np.array(imgs_med_model)).astype(np.float32)
+    frame_tensors = frames_to_tensor(imgs_med_model).astype(np.float32)
       #--- frame_tensors.shape = (2, 6, 128, 256)
     inputs = [np.vstack(frame_tensors[0:2])[None], desire, traffic_convection, state]
 
     outputs = supercombo.predict(inputs)
-      #---  outputs.shape = (1, 2383)
+      #[print("#---  outputs[", i, "] =", outputs[i]) for i in range(len(outputs))]
+      #[print("#---  outputs[", i, "].shape =", np.shape(outputs[i])) for i in range(len(outputs))]
+      #print ("#--- outputs.shape =", outputs.shape)   # only for modelB5.h5
+      #---  outputs.shape = (1, 2383)   # from modelB5.h5
+      #---  outputs[ 0 ].shape = (2383,)   # from modelB5.h5
+      #---  outputs[ 0 ].shape = (1, 385)   # from supercombo079.keras
+      #---  outputs[ 1 ].shape = (1, 386)
+      #---  outputs[ 2 ].shape = (1, 386)
+      #---  outputs[ 3 ].shape = (1, 58)
+      #---  outputs[ 4 ].shape = (1, 200)
+      #---  outputs[ 5 ].shape = (1, 200)
+      #---  outputs[ 6 ].shape = (1, 200)
+      #---  outputs[ 7 ].shape = (1, 8)
+      #---  outputs[ 8 ].shape = (1, 4)
+      #---  outputs[ 9 ].shape = (1, 32)
+      #---  outputs[ 10 ].shape = (1, 12)
+      #---  outputs[ 11 ].shape = (1, 512)
     if len(outputs) == 1:   # 1 outputs[2383] for modelB5.h5
       o0  = outputs[:, PATH_IDX:   LL_IDX]   #---  o0.shape = (1, 385)
       o1  = outputs[:, LL_IDX:     RL_IDX]
@@ -125,7 +140,6 @@ while True:
     parsed = parser(outs)
       # Important to refeed the state
     state = outs[-1]
-    pose = outs[-2]   # For 6 DoF Callibration
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     plt.clf()
@@ -178,13 +192,11 @@ while True:
       #plt.legend(['lll', 'rll', 'path'])
         # Needed to invert axis because standart left lane is positive and right lane is negative, so we flip the x axis
 
-    if frame_no < 100:
-        print(frame_no,': ','new_x_path = ', new_x_path[:3], 'parsed["path"][0] = ', parsed["path"][0][:3]) # check update. 2021.12.06
+    print("#--- i        =", i)
+    print("#--- frame_no =", frame_no,': ','new_x_path = ', new_x_path[:3], 'parsed["path"][0] = ', parsed["path"][0][:3]) # check update. 2021.12.06
 
     plt.pause(0.001)
     if cv2.waitKey(10) & 0xFF == ord('q'):
           break
 
   imgs_med_model[0] = imgs_med_model[1]
-
-print ("#--- Frames per second using video.get(cv2.CAP_PROP_FPS) : {0}".format(fps))

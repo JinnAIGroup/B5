@@ -1,4 +1,4 @@
-"""   YPL, JLL, 2021.9.15 - 2022.1.26
+"""   YPL, JLL, 2021.9.15 - 2022.3.1
 Input:
   /home/jinn/dataB/UHD--2018-l08-02--08-34-47--32/yuv.h5
   /home/jinn/dataB/UHD--2018-08-02--08-34-47--32/pathdata.h5
@@ -67,11 +67,12 @@ def datagen(batch_size, camera_files):
         cf5X = cf5['X']
         pf5P = pf5['Path']
         rf5L = rf5['LeadOne']
-          #---  cf5['X'].shape       = (1150, 6, 128, 256)
-          #---  pf5['Path'].shape    = (1149, 51)
-          #---  rf5['LeadOne'].shape = (1149, 5)
+          #---  cf5X.shape = (1150, 6, 128, 256)
+          #---  pf5P.shape = (1149, 51)
+          #---  rf5L.shape = (1149, 5)
 
-        PWPath    = 192 - pf5P.shape[1]   # PW = pad_width
+        PWPath    = 192 - pf5P.shape[1] + 1   # PW = pad_width; + 1: ignore "51" = valid_len, i.e., pad it to zero.
+          #---  pf5P.shape[1] = 51
         PWLLane   = 386
         PWRLane   = 386
         PWLead    = 29 - rf5L.shape[1]
@@ -96,18 +97,20 @@ def datagen(batch_size, camera_files):
             vsX1 = cf5X[count+ranIdx[i]]
             vsX2 = cf5X[count+ranIdx[i]+1]
               #---  vsX2.shape = (6, 128, 256)
-            Ximgs[count] = np.vstack((vsX1, vsX2))
+            Ximgs[count] = np.vstack((vsX1, vsX2))   # stack two yuv images i and i+1
               #---  Ximgs[count].shape = (12, 128, 256)
 
             pf5P1 = pf5P[count+ranIdx[i]]
             pf5P2 = pf5P[count+ranIdx[i]+1]
             rf5L1 = rf5L[count+ranIdx[i]]
             rf5L2 = rf5L[count+ranIdx[i]+1]
+              #---  pf5P1.shape = (51,)
               #---  pf5P2.shape = (51,)
               #---  rf5L2.shape = (5,)
-            pf5P1 = np.pad(pf5P1, (0, PWPath), 'constant')   # pad PWPath zeros ('constant') to the right; (0, PWPath) = (left, right)
+            pf5P1 = np.pad(pf5P1[:50], (0, PWPath), 'constant')   # pad PWPath=142 zeros ('constant') to the right of pf5P1[:50]=50; (0, PWPath) = (left, right)
               #---  pf5P1.shape = (192,)
-            pf5P2 = np.pad(pf5P2, (0, PWPath+1), 'constant')   # +1 to 385
+            pf5P2 = np.pad(pf5P2[:50], (0, PWPath+1), 'constant')   # pad PWPath+1=143 zeros to the right of pf5P2[:50]=50
+              #---  pf5P2.shape = (193,)
             rf5L1 = np.pad(rf5L1, (0, PWLead), 'constant')
             rf5L2 = np.pad(rf5L2, (0, PWLead), 'constant')
             Y0 = np.hstack((pf5P1, pf5P2))

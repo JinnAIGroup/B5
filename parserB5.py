@@ -1,14 +1,14 @@
-'''  JLL, 2021.8.16 - 2022.2.8
+'''  JLL, 2021.8.16 - 2022.3.2
 /home/jinn/YPN/Leon/parserB5.py
+from /home/jinn/YPN/Leon/common/tools/lib/parser.py
 '''
 import numpy as np
 
-PATH_DISTANCE = 192
-MAX_DISTANCE = 140.
+PATH_DISTANCE = 192   # MODEL_PATH_DISTANCE in modeldata.h, data.h
 LANE_OFFSET = 1.8
-MAX_REL_V = 10.
-LEAD_X_SCALE = 10
-LEAD_Y_SCALE = 10
+LEAD_X_SCALE = 10   # x_scale in driving.cc
+LEAD_Y_SCALE = 10   # y_scale in driving.cc
+LEAD_V_SCALE = 1
 
 def sigmoid(x):
   return 1. / (1. + np.exp(-x))
@@ -35,7 +35,7 @@ def parser(outs):
       #---  path.shape = (1, 385)
   if len(outs) == 12:   # 12 for supercombo079.keras
     path, ll, rl, lead, long_x, long_v, long_a, desire_state, meta, desire_pred, pose, state = outs
-  old_scale = True
+
   out_dict = {}
   if path is not None:
     if path.shape[1] == PATH_DISTANCE*2 + 1:
@@ -64,17 +64,8 @@ def parser(outs):
     out_dict['rll_prob'] = sigmoid(rl[:, -1])
     out_dict['rll_stds'] = softplus(rl[:, PATH_DISTANCE:-2])
     out_dict['rll_stds'][int(rl[0,-2]):] = 1e3
-  if lead is not None:
-    if old_scale:
-      LEAD_X_SCALE = 140
-      LEAD_Y_SCALE = 10
-      LEAD_V_SCALE = 10
-  else:
-    LEAD_X_SCALE = 10
-    LEAD_Y_SCALE = 10
-    LEAD_V_SCALE = 1
 
-  # LEAD MDN  Mixture Density Networks https://www.katnoria.com/mdn/
+    # Find the distribution that corresponds to the current lead
   lead_reshaped = lead[:,:-3].reshape((-1,5,11))
   lead_weights = softmax(lead_reshaped[:,:,8])
   lidx = np.argmax(lead_weights[0])
@@ -86,6 +77,7 @@ def parser(outs):
                                                softplus(lead_reshaped[:,lidx, 5]) * LEAD_Y_SCALE,
                                                softplus(lead_reshaped[:,lidx, 6]) * LEAD_V_SCALE,
                                                softplus(lead_reshaped[:,lidx, 7])])
+    # Find the distribution that corresponds to the lead in 2s
   out_dict['lead_prob'] = sigmoid(lead[:, -3])
   lead_weights_2s = softmax(lead_reshaped[:,:,9])
   lidx = np.argmax(lead_weights_2s[0])
@@ -99,10 +91,7 @@ def parser(outs):
                                                   softplus(lead_reshaped[:,lidx, 7])])
   out_dict['lead_prob_2s'] = sigmoid(lead[:, -2])
   out_dict['lead_all'] = lead
-  """
-  if speed is not None:
-      out_dict['speed'] = speed
-  """
+
   if meta is not None:
     out_dict['meta'] = meta
   if desire_pred is not None:
