@@ -5,7 +5,9 @@ for studying
   /home/jinn/openpilot/common/transformations/orientation.py =
   /home/jinn/YPN/yp-Efficient1/lib/orientation.py
 read
+  data processing:
   https://github.com/commaai/comma2k19/blob/master/notebooks/processed_readers.ipynb
+  coordinate systems:
   https://github.com/commaai/openpilot/tree/master/common/transformations
 
 WWW: Earth-centered, Earth-fixed coordinate system (ECEF)
