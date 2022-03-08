@@ -8,6 +8,7 @@ read
   data processing:
     https://github.com/commaai/comma2k19/blob/master/notebooks/processed_readers.ipynb
   coordinate systems:
+    https://en.wikipedia.org/wiki/Right-hand_rule
     https://en.wikipedia.org/wiki/Axes_conventions
     https://github.com/commaai/openpilot/tree/master/common/transformations
 
