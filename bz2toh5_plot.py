@@ -4,8 +4,9 @@ for studying
   /home/jinn/openpilot/tools/lib/bz2toh5.py
   /home/jinn/openpilot/common/transformations/orientation.py =
   /home/jinn/YPN/yp-Efficient1/lib/orientation.py
-read also
+read
   https://github.com/commaai/comma2k19/blob/master/notebooks/processed_readers.ipynb
+  https://github.com/commaai/openpilot/tree/master/common/transformations
 
 WWW: Earth-centered, Earth-fixed coordinate system (ECEF)
      Local tangent plane coordinates (NED: North-East-Down)
