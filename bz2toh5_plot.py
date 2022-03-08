@@ -1,4 +1,4 @@
-"""   YPL, JLL, 2022.2.11 - 2.22
+"""   YPL, JLL, 2022.2.11 - 3.8
 for studying
   /home/jinn/dataAll/14/global_pose
   /home/jinn/openpilot/tools/lib/bz2toh5.py
@@ -14,7 +14,7 @@ WWW: Earth-centered, Earth-fixed coordinate system (ECEF)
      Visualizing quaternions (4d numbers) with stereographic projection
      Visualizing quaternions An explorable video series
      Stereographic projection (2d, 3d, 4d)
-     A Tutorial on Euler Angles and Quaternions
+     A Tutorial on Euler Angles and Quaternions (P. 16 for quat2rot(quats))
      Computing Euler angles from a rotation matrix
      Using Rotations to Build Aerospace Coordinate Systems
 
@@ -40,7 +40,7 @@ s = s**0.5  # speed (m/sec)
   #---  s = [30.76645261 30.76602006 30.7712556  ... => about 108 km/h
 D = s*0.05  # Distance: FPS = 20 frames/second (Hertz (Hz)), dt = 1/20 => about 1.5 m between two frames
 velocities = np.linalg.norm(frame_velocities, axis=1)
-  #---  velocities = [30.76645261 30.76602006 30.7712556  ... 
+  #---  velocities = [30.76645261 30.76602006 30.7712556  ...
 
 for i in range(len(s)):
   ecef_from_local = orient.rot_from_quat(frame_orientations[i])
