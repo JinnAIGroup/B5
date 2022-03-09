@@ -7,7 +7,7 @@
 [hevc2yuvh5.py](https://github.com/JinnAIGroup/B5/blob/main/hevc2yuvh5.py) => yuv.h5
 
 [rlog.bz2](https://drive.google.com/file/d/1GOOD4IhagzsaB_HsC6cvavKj1lLcD0nb/view?usp=sharing) => 
-[bz2toh5.py](https://github.com/JinnAIGroup/YPNetA/blob/main/bz2toh5.py) => pathdata.h5, radardata.h5
+[bz2toh5.py](https://github.com/JinnAIGroup/YPNetA/blob/main/bz2toh5.py) => pathdata.h5, radardata.h5 => read [bz2toh5_plot.py](https://github.com/JinnAIGroup/B5/blob/main/bz2toh5_plot.py)
 ### Step 3. Create Model 
 [modelB5.py](https://github.com/JinnAIGroup/B5/blob/main/modelB5.py)
 ### Step 4. Generate Data
