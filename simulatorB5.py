@@ -1,11 +1,11 @@
-'''   HC, JLL, 2021.8.14 - 2022.3.1
+'''   HC, JLL, 2021.8.14 - 2022.3.9
 (YPN) jinn@Liu:~/YPN/Leon$ python simulatorB5.py ./fcamera.hevc
 Input:
   /home/jinn/YPN/Leon/models/modelB5.h5
   /home/jinn/YPN/Leon/fcamera.hevc
 Output:
-  modelB5.h5 imitates supercombo079.keras and predicts path drawn on fcamera.hevc
-  parserB5 parses the 12 outputs of modelB5 running on fcamera.hevc
+  modelB5.h5 imitates supercombo079.keras and predicts driving path on fcamera.hevc
+  parserB5.py parses modelB5.h5 and supercombo079.keras for 12 outputs from fcamera.hevc
 '''
 import os
 import sys
@@ -33,81 +33,85 @@ POSE_IDX   = 1859   # o10: 12
 STATE_IDX  = 1871   # o11: 512
 OUTPUT_IDX = 2383
 
-camerafile = sys.argv[1]
+camerafile = sys.argv[1]   # = fcamera.hevc
 supercombo = load_model('models/supercombo079.keras', compile = False)   # 12 outs
 '''
 supercombo = load_model('models/modelB5.h5', compile = False)   # 1 out = (1, 2383)
   99 :  new_x_path =  [567.7336717867292, 625.5671301933083, 552.933855447142] parsed["path"][0] =  [ 0.23713899  0.16713709 -0.5016851 ]
 supercombo = load_model('models/supercombo079.keras', compile = False)   # 12 outs
-  Error:
+  Error: Solved. Due to 0 in np.linspace(0, 192, 192).
     /home/jinn/YPN/Leon/common/lanes_image_space.py:89: RuntimeWarning: divide by zero encountered in double_scalars
       p_image = p_full_frame = np.array([KEp[0] / KEp[2], KEp[1] / KEp[2], 1.])
   99 :  new_x_path =  [699.0010597977995, 666.3408217211254, 646.5449165835355] parsed["path"][0] =  [-0.3373536 -0.3910733 -0.4009965]
 '''
 #print(supercombo.summary())
+'''
+bRGB (874, 1164, 3) = (H, W, C) <=> bYUV (1311, 1164) <=>  CbYUV (6, 291, 582) = (C, H, W) [key: 1311 =  874x3/2]
+sRGB (256,  512, 3) = (H, W, C) <=> sYUV  (384,  512) <=>  CsYUV (6, 128, 256) = (C, H, W) [key:  384 =  256x3/2]
+'''
+def sYUVs_to_CsYUVs(sYUVs):   # see hevc2yuvh5.py and main.py
+    #--- sYUVs.shape = (2, 384, 512)
+  H = (sYUVs.shape[1]*2)//3   # = 384x2//3 = 256
+  W = sYUVs.shape[2]
+  CsYUVs = np.zeros((sYUVs.shape[0], 6, H//2, W//2), dtype=np.uint8)
 
-def frames_to_tensor(frames):
-    #--- frames.shape = (2, 384, 512)
-  H = (frames.shape[1]*2)//3
-  W = frames.shape[2]
-  in_img1 = np.zeros((frames.shape[0], 6, H//2, W//2), dtype=np.uint8)
+  CsYUVs[:, 0] = sYUVs[:, 0:H:2, 0::2]
+  CsYUVs[:, 1] = sYUVs[:, 1:H:2, 0::2]
+  CsYUVs[:, 2] = sYUVs[:, 0:H:2, 1::2]
+  CsYUVs[:, 3] = sYUVs[:, 1:H:2, 1::2]
+  CsYUVs[:, 4] = sYUVs[:, H:H+H//4].reshape((-1, H//2,W//2))
+  CsYUVs[:, 5] = sYUVs[:, H+H//4:H+H//2].reshape((-1, H//2,W//2))
+  CsYUVs = np.array(CsYUVs).astype(np.float32)
 
-  in_img1[:, 0] = frames[:, 0:H:2, 0::2]
-  in_img1[:, 1] = frames[:, 1:H:2, 0::2]
-  in_img1[:, 2] = frames[:, 0:H:2, 1::2]
-  in_img1[:, 3] = frames[:, 1:H:2, 1::2]
-  in_img1[:, 4] = frames[:, H:H+H//4].reshape((-1, H//2,W//2))
-  in_img1[:, 5] = frames[:, H+H//4:H+H//2].reshape((-1, H//2,W//2))
-  return in_img1
+    #--- CsYUVs.shape = (2, 6, 128, 256)
+  return CsYUVs
 
-imgs_med_model = np.zeros((2, 384, 512), dtype=np.uint8)
+sYUVs = np.zeros((2, 384, 512), dtype=np.uint8)
 desire = np.zeros((1,8))
 traffic_convection = np.zeros((1,2))
 state = np.zeros((1,512))
 
 cap = cv2.VideoCapture(camerafile)
 
-x_left = x_right = x_path = np.linspace(0, 192, 192)
+x_ahead = np.linspace(1, 192, 192)   # linear spacing: linspace(start, stop, num), num: total number of items (pionts)
 
-(ret, previous_frame) = cap.read()
-  #print ("#--- frome no. = ", cap.get(cv2.CAP_PROP_POS_FRAMES))
-  #--- frome no. =  1.0
-  #cap.release()
+(ret, previous_frame) = cap.read()   # read 1st frame and set it to previous_frame
 
 if not ret:
    exit()
 else:
   frame_no = 1
-  img_yuv = cv2.cvtColor(previous_frame, cv2.COLOR_BGR2YUV_I420)
-  imgs_med_model[0] = transform_img(img_yuv, from_intr=eon_intrinsics, to_intr=medmodel_intrinsics, yuv=True,
-                                    output_size=(512,256))
-    #--- imgs_med_model.shape = (2, 384, 512)
+  bYUV = cv2.cvtColor(previous_frame, cv2.COLOR_BGR2YUV_I420)   # from big BGR to big YUV
+  sYUVs[0] = transform_img(bYUV, from_intr=eon_intrinsics, to_intr=medmodel_intrinsics, yuv=True,
+                           output_size=(512,256))   # resize bYUVs to small YUVs
+    #--- sYUVs.shape = (2, 384, 512)
 
 fig = plt.figure('OPNet Simulator')
 
 #while True:
-for i in range(2):
+for i in range(9):
+  print("#---  frame_no =", frame_no)
   (ret, current_frame) = cap.read()
   if not ret:
        break
   frame_no += 1
 
   frame = current_frame.copy()
-  img_yuv = cv2.cvtColor(current_frame, cv2.COLOR_BGR2YUV_I420)
-  imgs_med_model[1] = transform_img(img_yuv, from_intr=eon_intrinsics, to_intr=medmodel_intrinsics, yuv=True,
-                                    output_size=(512,256))
+  bYUV = cv2.cvtColor(current_frame, cv2.COLOR_BGR2YUV_I420)
+  sYUVs[1] = transform_img(bYUV, from_intr=eon_intrinsics, to_intr=medmodel_intrinsics, yuv=True,
+                           output_size=(512,256))
 
   if frame_no > 0:
-    frame_tensors = frames_to_tensor(imgs_med_model).astype(np.float32)
-      #--- frame_tensors.shape = (2, 6, 128, 256)
-    inputs = [np.vstack(frame_tensors[0:2])[None], desire, traffic_convection, state]
+    CsYUVs = sYUVs_to_CsYUVs(sYUVs)
+    inputs = [np.vstack(CsYUVs[0:2])[None], desire, traffic_convection, state]
 
     outputs = supercombo.predict(inputs)
       #[print("#---  outputs[", i, "] =", outputs[i]) for i in range(len(outputs))]
       #[print("#---  outputs[", i, "].shape =", np.shape(outputs[i])) for i in range(len(outputs))]
-      #print ("#--- outputs.shape =", outputs.shape)   # only for modelB5.h5
-      #---  outputs.shape = (1, 2383)   # from modelB5.h5
-      #---  outputs[ 0 ].shape = (2383,)   # from modelB5.h5
+      #print ("#---  outputs.shape =", outputs.shape)   # only for modelB5.h5
+      #---  outputs.shape = (1, 2383)       # only for modelB5.h5
+      #---  outputs[ 0 ].shape = (2383,)    # from modelB5.h5
+      #---  len(outputs) = 12               # only for supercombo079.keras
       #---  outputs[ 0 ].shape = (1, 385)   # from supercombo079.keras
       #---  outputs[ 1 ].shape = (1, 386)
       #---  outputs[ 2 ].shape = (1, 386)
@@ -138,33 +142,33 @@ for i in range(2):
       outs = outputs
 
     parsed = parser(outs)
-      # Important to refeed the state
-    state = outs[-1]
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+      #---  len(parsed) = 25
+      #print ("#---  len(parsed) =", len(parsed))   # see output.txt
+    state = outs[-1]   # Important to refeed the state
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)   # cv2 reads images in BGR format (instead of RGB)
 
-    plt.clf()
+    plt.clf()   # clear figure
     plt.xlim(0, 1200)
     plt.ylim(800, 0)
-    ##################
-    plt.subplot(221)
+
+    plt.subplot(221)   # 221: 2 rows, 2 columns, 1st sub-figure
     plt.title("Overlay Scene")
-    new_x_left, new_y_left = transform_points(x_left, parsed["lll"][0])
-    new_x_path, new_y_path = transform_points(x_left, parsed["path"][0])
-    new_x_right, new_y_right = transform_points(x_left, parsed["rll"][0])
+    new_x_left, new_y_left = transform_points(x_ahead, parsed["lll"][0])
+    new_x_path, new_y_path = transform_points(x_ahead, parsed["path"][0])
+    new_x_right, new_y_right = transform_points(x_ahead, parsed["rll"][0])
 
     plt.plot(new_x_left, new_y_left, label='transformed', color='r')
     plt.plot(new_x_path, new_y_path, label='transformed', color='g')
     plt.plot(new_x_right, new_y_right, label='transformed', color='b')
 
-    plt.imshow(frame) # HC: Merge raw image and plot together
+    plt.imshow(frame)   # Merge raw image and plot together
 
-    ##################
     plt.subplot(222)
     plt.gca().invert_yaxis()
     plt.title("Camera View")
-    new_x_left, new_y_left = transform_points(x_left, parsed["lll"][0])
-    new_x_path, new_y_path = transform_points(x_left, parsed["path"][0])
-    new_x_right, new_y_right = transform_points(x_left, parsed["rll"][0])
+    new_x_left, new_y_left = transform_points(x_ahead, parsed["lll"][0])
+    new_x_path, new_y_path = transform_points(x_ahead, parsed["path"][0])
+    new_x_right, new_y_right = transform_points(x_ahead, parsed["rll"][0])
 
     plt.plot(new_x_left, new_y_left, label='transformed', color='r')
     plt.plot(new_x_path, new_y_path, label='transformed', color='g')
@@ -172,16 +176,13 @@ for i in range(2):
 
     plt.legend(['left', 'path', 'right'])
 
-    ##################
-    plt.subplot(223) # Resize image
-    frame = cv2.resize(frame, (640, 420))
+    plt.subplot(223)
     plt.title("Original Scene")
     plt.imshow(frame)
 
-    ##################
     plt.subplot(224)
     plt.gca().invert_xaxis()
-    plt.title("Top-Down View")
+    plt.title("Top-Down Road View")
       # From main.py
       # lll = left lane line
     plt.plot(parsed["lll"][0], range(0,192), "r-", linewidth=1)
@@ -192,11 +193,20 @@ for i in range(2):
       #plt.legend(['lll', 'rll', 'path'])
         # Needed to invert axis because standart left lane is positive and right lane is negative, so we flip the x axis
 
-    print("#--- i        =", i)
-    print("#--- frame_no =", frame_no,': ','new_x_path = ', new_x_path[:3], 'parsed["path"][0] = ', parsed["path"][0][:3]) # check update. 2021.12.06
-
     plt.pause(0.001)
-    if cv2.waitKey(10) & 0xFF == ord('q'):
-          break
+  sYUVs[0] = sYUVs[1]
 
-  imgs_med_model[0] = imgs_med_model[1]
+print("#---  frame_no =", frame_no)
+  #print('#---  parsed["path"][0]  =', parsed["path"][0])
+print('#---  parsed["path"][0][:3]  =', parsed["path"][0][:3])
+print('#---  parsed["path"][0][-3:] =', parsed["path"][0][-3:])
+print('#---  new_x_path[:3]         =', new_x_path[:3])
+print('#---  new_x_path[-3:]        =', new_x_path[-3:])
+print('#---  new_y_path[:3]         =', new_y_path[:3])
+print('#---  new_y_path[-3:]        =', new_y_path[-3:])
+print("#---  len(new_x_path)        =", len(new_x_path))
+
+input("Press ENTER to exit ...")
+if cv2.waitKey(1000) == 27:   # if ENTER is pressed
+  cv2.destroyAllWindows()
+plt.close()
