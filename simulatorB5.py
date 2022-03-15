@@ -1,11 +1,14 @@
-'''   HC, JLL, 2021.8.14 - 2022.3.9
+'''   HC, JLL, 2021.8.14 - 2022.3.15
+from (read) /home/jinn/YPN/Leon/main.py
+
 (YPN) jinn@Liu:~/YPN/Leon$ python simulatorB5.py ./fcamera.hevc
 Input:
   /home/jinn/YPN/Leon/models/modelB5.h5
   /home/jinn/YPN/Leon/fcamera.hevc
+    modelB5.h5 imitates supercombo079.keras and predicts driving path, lane lines, etc. on fcamera.hevc
+    parserB5.py parses 12 outputs from modelB5.h5 and supercombo079.keras on fcamera.hevc
 Output:
-  modelB5.h5 imitates supercombo079.keras and predicts driving path on fcamera.hevc
-  parserB5.py parses modelB5.h5 and supercombo079.keras for 12 outputs from fcamera.hevc
+  4 figures, output.txt, output0_11.txt
 '''
 import os
 import sys
@@ -89,7 +92,7 @@ else:
 fig = plt.figure('OPNet Simulator')
 
 #while True:
-for i in range(9):
+for i in range(1):
   print("#---  frame_no =", frame_no)
   (ret, current_frame) = cap.read()
   if not ret:
@@ -143,7 +146,7 @@ for i in range(9):
 
     parsed = parser(outs)
       #---  len(parsed) = 25
-      #print ("#---  len(parsed) =", len(parsed))   # see output.txt
+      #[print("#---  parsed[", x, "].shape =", parsed[x].shape) for x in parsed]   # see output.txt
     state = outs[-1]   # Important to refeed the state
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)   # cv2 reads images in BGR format (instead of RGB)
 
