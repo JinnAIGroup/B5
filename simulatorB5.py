@@ -8,7 +8,7 @@ Input:
     modelB5.h5 imitates supercombo079.keras and predicts driving path, lane lines, etc. on fcamera.hevc
     parserB5.py parses 12 outputs from modelB5.h5 and supercombo079.keras on fcamera.hevc
 Output:
-  4 figures, output.txt, output0_11.txt
+  4 figures, sim_output.txt, sim_output0_11.txt
 '''
 import os
 import sys
