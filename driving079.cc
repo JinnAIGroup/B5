@@ -17,8 +17,8 @@
 #define LONG_V_IDX LONG_X_IDX + TIME_DISTANCE*2       // 100*2 = 200,                 LONG_V_IDX = 1415
 #define LONG_A_IDX LONG_V_IDX + TIME_DISTANCE*2       // 100*2 = 200,                 LONG_A_IDX = 1615
 #define DESIRE_STATE_IDX LONG_A_IDX + TIME_DISTANCE*2 // 100*2 = 200,           DESIRE_STATE_IDX = 1815
-#define META_IDX DESIRE_STATE_IDX + DESIRE_LEN        // 8,                             META_IDX = 1823
-#define POSE_IDX META_IDX + OTHER_META_SIZE + DESIRE_PRED_SIZE   // 4+32 = 36,          POSE_IDX = 1859
+#define META_IDX DESIRE_STATE_IDX + DESIRE_LEN        // 8,                             META_IDX = 1823 (not used)
+#define POSE_IDX META_IDX + OTHER_META_SIZE + DESIRE_PRED_SIZE   // 4+32 = 36,          POSE_IDX = 1859 (not used)
 #define OUTPUT_SIZE  POSE_IDX + POSE_SIZE             // 12,                         OUTPUT_SIZE = 1871
 #ifdef TEMPORAL
   #define TEMPORAL_SIZE 512                           // 512,                output_size = Total = 2383
