@@ -154,6 +154,10 @@ void poly_fit(float *in_pts, float *in_stds, float *out, int valid_len) {
   out[3] = y0;
 }
 
+  /* See https://capnproto.org/cxx.html for cereal::ModelData::PathData::Builder path
+     For each struct Foo (PathData) in your interface (OP079C2/cereal/log.capnp), a C++ type named Foo generated.
+     Reader represents a read-only instance of Foo while Builder represents a writable instance.
+     For every field bar defined in Foo, Foo::Builder has a method setBar(). */
 void fill_path(cereal::ModelData::PathData::Builder path, const float * data, bool has_prob, const float offset) {
   float points_arr[MODEL_PATH_DISTANCE];
   float stds_arr[MODEL_PATH_DISTANCE];
