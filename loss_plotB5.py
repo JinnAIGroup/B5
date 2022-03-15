@@ -1,5 +1,5 @@
-"""   JLL, 2022.3.1
-(YPN) jinn@Liu:~/YPN/B5$ python plot_txtB5.py
+"""   JLL, 2022.3.15
+(YPN) jinn@Liu:~/YPN/B5$ python loss_plotB5.py
 """
 import numpy as np
 import matplotlib.pyplot as plt
