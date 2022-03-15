@@ -1,5 +1,6 @@
 '''   HC, JLL, 2021.8.14 - 2022.3.15
-from (read) /home/jinn/YPN/Leon/main.py
+from /home/jinn/YPN/Leon/main.py
+     /home/jinn/OP079C2/selfdrive/modeld/models/driving079.cc
 
 (YPN) jinn@Liu:~/YPN/Leon$ python simulatorB5.py ./fcamera.hevc
 Input:
