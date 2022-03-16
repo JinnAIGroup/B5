@@ -15,7 +15,7 @@
 [datagenB5.py](https://github.com/JinnAIGroup/B5/blob/main/datagenB5.py)
 ### Step 5. Train Model
 [train_modelB5.py](https://github.com/JinnAIGroup/B5/blob/main/train_modelB5.py) => modelB5.h5 => outputs:
-[plot_txtB5.py](https://github.com/JinnAIGroup/B5/blob/main/plot_txtB5.py) 
+[train_plot.py](https://github.com/JinnAIGroup/B5/blob/main/train_plot.py) 
 ### Step 6. Verify Model
 modelB5.h5 => [simulatorB5.py](https://github.com/JinnAIGroup/B5/blob/main/simulatorB5.py) => 
 [output.txt](https://github.com/JinnAIGroup/B5/blob/main/output.txt) => 
