@@ -1,6 +1,7 @@
-'''  JLL, 2021.8.16 - 2022.3.2
+'''  JLL, 2021.8.16 - 2022.3.16
 /home/jinn/YPN/Leon/parserB5.py
 from /home/jinn/YPN/Leon/common/tools/lib/parser.py
+     /home/jinn/OP079C2/selfdrive/modeld/models/driving079.cc
 '''
 import numpy as np
 
@@ -14,9 +15,9 @@ def sigmoid(x):
   return 1. / (1. + np.exp(-x))
 
 def softplus(x):
-  # fix numerical stability
-  #return np.log1p(np.exp(x))
-  return np.log1p(np.exp(-np.abs(x))) + np.maximum(x,0)
+  return np.log1p(np.exp(x)) + 1e-6   # see Line 173 in driving079.cc
+    # fix numerical stability
+  #return np.log1p(np.exp(-np.abs(x))) + np.maximum(x,0)
 
 def softmax(x):
   x = np.copy(x)
@@ -38,57 +39,56 @@ def parser(outs):
 
   out_dict = {}
   if path is not None:
-    if path.shape[1] == PATH_DISTANCE*2 + 1:
-      out_dict['path'] = path[:, :PATH_DISTANCE]
-      out_dict['path_stds'] = softplus(path[:, PATH_DISTANCE:2*PATH_DISTANCE])
-      out_dict['path_stds'][int(path[0,-1]):] = 1e3
-    elif path.shape[1] == PATH_DISTANCE*2:  # indent error in old file
-      out_dict['path'] = path[:, :PATH_DISTANCE]
-      out_dict['path_stds'] = softplus(path[:, PATH_DISTANCE:2*PATH_DISTANCE])
-  else:
-    path_reshaped = path[:,:-1].reshape((path.shape[0], -1, PATH_DISTANCE*2 + 1))
-    out_dict['paths'] = path_reshaped[:, :, :PATH_DISTANCE]
-    out_dict['paths_stds'] = softplus(path_reshaped[:, :, PATH_DISTANCE:PATH_DISTANCE*2])
-    out_dict['path_weights'] = softmax(path_reshaped[:,:,-1])
-    lidx = np.argmax(out_dict['path_weights'])
-    out_dict['path'] = path_reshaped[:, lidx, :PATH_DISTANCE]
-    out_dict['path_stds'] = softplus(path_reshaped[:, lidx, PATH_DISTANCE:PATH_DISTANCE*2])
+    out_dict['path'] = path[:, :PATH_DISTANCE]
+    out_dict['path_stds'] = softplus(path[:, PATH_DISTANCE:PATH_DISTANCE*2])
+    out_dict['path_valid_len'] = np.fmin(PATH_DISTANCE, np.fmax(5, path[:, PATH_DISTANCE*2]))
+      #---  out_dict['path_valid_len'] = 37.5976448059082
+      #print("#---  out_dict['path_valid_len'] =", out_dict['path_valid_len'])
 
   if ll is not None:
     out_dict['lll'] = ll[:, :PATH_DISTANCE] + LANE_OFFSET
-    out_dict['lll_prob'] = sigmoid(ll[:, -1])
-    out_dict['lll_stds'] = softplus(ll[:, PATH_DISTANCE:-2])
-    out_dict['lll_stds'][int(ll[0,-2]):] = 1e3
+    out_dict['lll_stds'] = softplus(ll[:, PATH_DISTANCE:PATH_DISTANCE*2])
+    out_dict['lll_valid_len'] = np.fmin(PATH_DISTANCE, np.fmax(5, ll[:, PATH_DISTANCE*2]))
+    out_dict['lll_prob'] = sigmoid(ll[:, PATH_DISTANCE*2 + 1])
+
   if rl is not None:
     out_dict['rll'] = rl[:, :PATH_DISTANCE] - LANE_OFFSET
-    out_dict['rll_prob'] = sigmoid(rl[:, -1])
     out_dict['rll_stds'] = softplus(rl[:, PATH_DISTANCE:-2])
-    out_dict['rll_stds'][int(rl[0,-2]):] = 1e3
+    out_dict['rll_valid_len'] = np.fmin(PATH_DISTANCE, np.fmax(5, rl[:, -2]))
+    out_dict['rll_prob'] = sigmoid(rl[:, -1])
 
-    # Find the distribution that corresponds to the current lead
-  lead_reshaped = lead[:,:-3].reshape((-1,5,11))
-  lead_weights = softmax(lead_reshaped[:,:,8])
-  lidx = np.argmax(lead_weights[0])
-  out_dict['lead_xyva'] = np.column_stack([lead_reshaped[:,lidx, 0] * LEAD_X_SCALE,
-                                           lead_reshaped[:,lidx, 1] * LEAD_Y_SCALE,
-                                           lead_reshaped[:,lidx, 2] * LEAD_V_SCALE,
-                                           lead_reshaped[:,lidx, 3]])
-  out_dict['lead_xyva_std'] = np.column_stack([softplus(lead_reshaped[:,lidx, 4]) * LEAD_X_SCALE,
-                                               softplus(lead_reshaped[:,lidx, 5]) * LEAD_Y_SCALE,
-                                               softplus(lead_reshaped[:,lidx, 6]) * LEAD_V_SCALE,
-                                               softplus(lead_reshaped[:,lidx, 7])])
+    # LEAD_MDN_N 5 = probs (weights) for 5 groups (MDN = Mixture Density Networks https://www.katnoria.com/mdn/)
+    # MDN_GROUP_SIZE 11, SELECTION 3 = 3 groups (lead now, in 2s and 6s); Networks?? or just Mixture Density??
+    # 58 = LEAD_MDN_N * MDN_GROUP_SIZE + SELECTION
+    # Find the distribution that corresponds to the current lead (0s)
+  lead_reshaped = lead[:, :-3].reshape((-1, 5, 11))   # lead.shape = (1, 58)
+    #print("#---  lead_reshaped =", lead_reshaped)  # see sim_output0_11.txt
+    #---  lead_reshaped.shape = (1, 5, 11)
+  lead_weights = softmax(lead_reshaped[:, :, 8])
+    #---  lead_weights.shape = (1, 5)
+  lidx = np.argmax(lead_weights[0])   #---  lidx = 4 or 2
+    #---  lead_weights[0] = [0.1692249  0.05831928 0.29429242 0.14750355 0.33065984]
+    #print("#---  lead_weights[0] =", lead_weights[0])
+  out_dict['lead_xyva'] = np.column_stack([lead_reshaped[:, lidx, 0] * LEAD_X_SCALE,
+                                           lead_reshaped[:, lidx, 1] * LEAD_Y_SCALE,
+                                           lead_reshaped[:, lidx, 2] * LEAD_V_SCALE,
+                                           lead_reshaped[:, lidx, 3]])
+  out_dict['lead_xyva_std'] = np.column_stack([softplus(lead_reshaped[:, lidx, 4]) * LEAD_X_SCALE,
+                                               softplus(lead_reshaped[:, lidx, 5]) * LEAD_Y_SCALE,
+                                               softplus(lead_reshaped[:, lidx, 6]) * LEAD_V_SCALE,
+                                               softplus(lead_reshaped[:, lidx, 7])])
     # Find the distribution that corresponds to the lead in 2s
   out_dict['lead_prob'] = sigmoid(lead[:, -3])
-  lead_weights_2s = softmax(lead_reshaped[:,:,9])
+  lead_weights_2s = softmax(lead_reshaped[:, :, 9])
   lidx = np.argmax(lead_weights_2s[0])
-  out_dict['lead_xyva_2s'] = np.column_stack([lead_reshaped[:,lidx, 0] * LEAD_X_SCALE,
-                                              lead_reshaped[:,lidx, 1] * LEAD_Y_SCALE,
-                                              lead_reshaped[:,lidx, 2] * LEAD_V_SCALE,
-                                              lead_reshaped[:,lidx, 3]])
-  out_dict['lead_xyva_std_2s'] = np.column_stack([softplus(lead_reshaped[:,lidx, 4]) * LEAD_X_SCALE,
-                                                  softplus(lead_reshaped[:,lidx, 5]) * LEAD_Y_SCALE,
-                                                  softplus(lead_reshaped[:,lidx, 6]) * LEAD_V_SCALE,
-                                                  softplus(lead_reshaped[:,lidx, 7])])
+  out_dict['lead_xyva_2s'] = np.column_stack([lead_reshaped[:, lidx, 0] * LEAD_X_SCALE,
+                                              lead_reshaped[:, lidx, 1] * LEAD_Y_SCALE,
+                                              lead_reshaped[:, lidx, 2] * LEAD_V_SCALE,
+                                              lead_reshaped[:, lidx, 3]])
+  out_dict['lead_xyva_std_2s'] = np.column_stack([softplus(lead_reshaped[:, lidx, 4]) * LEAD_X_SCALE,
+                                                  softplus(lead_reshaped[:, lidx, 5]) * LEAD_Y_SCALE,
+                                                  softplus(lead_reshaped[:, lidx, 6]) * LEAD_V_SCALE,
+                                                  softplus(lead_reshaped[:, lidx, 7])])
   out_dict['lead_prob_2s'] = sigmoid(lead[:, -2])
   out_dict['lead_all'] = lead
 
@@ -107,7 +107,7 @@ def parser(outs):
     out_dict['long_a'] = long_a
   if pose is not None:
     out_dict['trans'] = pose[:,:3]
-    out_dict['trans_std'] = softplus(pose[:,6:9]) + 1e-6
-    out_dict['rot'] = pose[:,3:6] * np.pi / 180.0
-    out_dict['rot_std'] = (softplus(pose[:,9:12]) + 1e-6) * np.pi / 180.0
+    out_dict['trans_std'] = softplus(pose[:, 6:9]) + 1e-6
+    out_dict['rot'] = pose[:, 3:6] * np.pi / 180.0
+    out_dict['rot_std'] = (softplus(pose[:, 9:12]) + 1e-6) * np.pi / 180.0
   return out_dict
