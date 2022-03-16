@@ -151,7 +151,7 @@ def datagen(batch_size, camera_files):
           batchIndx += 1
           print('#---  batchIndx =', batchIndx)
             #---  batchIndx = 181??? (dataN-2-batch_size = 1129, batch_size = 16, 1129÷16 = 70.5, 70×2 epochs = 140)
-          if Nplot == 0:
+          '''if Nplot == 0:
             Yb = Ytrue0[0][:]
               #---  Yb.shape = (385,)
               #print('#---  Yb =', Yb)
@@ -160,6 +160,6 @@ def datagen(batch_size, camera_files):
             print('#---datagenB5  Ytrue3[0][0:1]     =', Ytrue3[0][0:1])      # lcar's d = 385+386+386 = 1157
             print('#---datagenB5  Ytrue3[0][29:30]   =', Ytrue3[0][29:30])    # lcar's d = 1157+29 = 1186
             plt.plot(Yb)
-            plt.show()
+            plt.show()'''
             Nplot += 1
           yield Ximgs, Xin1, Xin2, Xin3, Ytrue0, Ytrue1, Ytrue2, Ytrue3, Ytrue4, Ytrue5, Ytrue6, Ytrue7, Ytrue8, Ytrue9, Ytrue10, Ytrue11
