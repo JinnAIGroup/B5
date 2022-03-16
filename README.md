@@ -18,7 +18,7 @@
 [train_plot.py](https://github.com/JinnAIGroup/B5/blob/main/train_plot.py) 
 ### Step 6. Verify Model
 modelB5.h5 => [simulatorB5.py](https://github.com/JinnAIGroup/B5/blob/main/simulatorB5.py) => 
-[output.txt](https://github.com/JinnAIGroup/B5/blob/main/output.txt) => 
+[sim_output.txt](https://github.com/JinnAIGroup/B5/blob/main/sim_output.txt) => 
 [Horace](https://drive.google.com/file/d/15RyzVCR_greK_NXDm_AcLsLmEsqg-e9d/view?usp=sharing)
 ### Step 7. [Install SNPE](https://docs.google.com/document/d/1x1OMnGbGKDapQEBx4xNi2VEwYRL0_XFLZZZDvE8Vefo/edit)
 ### Step 8. Deploy Model
