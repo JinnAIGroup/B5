@@ -4,7 +4,7 @@ from /home/jinn/openpilot/common/transformations/camera.py
      /home/jinn/OP079C2/selfdrive/ui/paint.cc
 read
   https://github.com/JinnAIGroup/B5/blob/main/bz2toh5_plot.py
-  https://en.wikipedia.org/wiki/Camera_resectioning
+  https://en.wikipedia.org/wiki/Camera_resectioning (camera calibration)
   https://towardsdatascience.com/camera-calibration-fda5beb373c3
   http://www.cse.psu.edu/~rtc12/CSE486/lecture12.pdf
 
