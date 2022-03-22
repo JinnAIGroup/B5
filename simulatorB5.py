@@ -2,6 +2,9 @@
 from /home/jinn/YPN/Leon/main.py
      /home/jinn/OP079C2/selfdrive/modeld/models/driving079.cc
 
+vanishing point adjustements:
+W/2. + 29; H/2. - 40; height = 1.2; lll: + LANE_OFFSET - 0.2; rll: - LANE_OFFSET - 0.7
+
 (YPN) jinn@Liu:~/YPN/Leon$ python simulatorB5.py ./fcamera.hevc
 Input:
   /home/jinn/YPN/Leon/models/modelB5.h5
@@ -10,9 +13,6 @@ Input:
     parserB5.py parses 12 outputs from modelB5.h5 and supercombo079.keras on fcamera.hevc
 Output:
   4 figures, sim_output.txt, sim_output0_11.txt
-
-vanishing point adjustements:
-W/2. + 29; H/2. - 40; height = 1.2; lll: + LANE_OFFSET - 0.2; rll: - LANE_OFFSET - 0.7
 '''
 import os
 import sys
