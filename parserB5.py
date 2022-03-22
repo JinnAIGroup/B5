@@ -1,4 +1,4 @@
-'''  JLL, 2021.8.16 - 2022.3.16
+'''  JLL, 2021.8.16 - 2022.3.22
 /home/jinn/YPN/Leon/parserB5.py
 from /home/jinn/YPN/Leon/common/tools/lib/parser.py
      /home/jinn/OP079C2/selfdrive/modeld/models/driving079.cc
@@ -37,6 +37,7 @@ def parser(outs):
   if len(outs) == 12:   # 12 for supercombo079.keras
     path, ll, rl, lead, long_x, long_v, long_a, desire_state, meta, desire_pred, pose, state = outs
 
+    ''' from fill_path() in driving079.cc '''
   out_dict = {}
   if path is not None:
     out_dict['path'] = path[:, :PATH_DISTANCE]
@@ -46,21 +47,23 @@ def parser(outs):
       #print("#---  out_dict['path_valid_len'] =", out_dict['path_valid_len'])
 
   if ll is not None:
-    out_dict['lll'] = ll[:, :PATH_DISTANCE] + LANE_OFFSET
+    out_dict['lll'] = ll[:, :PATH_DISTANCE] + LANE_OFFSET - 0.2
     out_dict['lll_stds'] = softplus(ll[:, PATH_DISTANCE:PATH_DISTANCE*2])
     out_dict['lll_valid_len'] = np.fmin(PATH_DISTANCE, np.fmax(5, ll[:, PATH_DISTANCE*2]))
     out_dict['lll_prob'] = sigmoid(ll[:, PATH_DISTANCE*2 + 1])
 
   if rl is not None:
-    out_dict['rll'] = rl[:, :PATH_DISTANCE] - LANE_OFFSET
+    out_dict['rll'] = rl[:, :PATH_DISTANCE] - LANE_OFFSET - 0.7
     out_dict['rll_stds'] = softplus(rl[:, PATH_DISTANCE:-2])
     out_dict['rll_valid_len'] = np.fmin(PATH_DISTANCE, np.fmax(5, rl[:, -2]))
     out_dict['rll_prob'] = sigmoid(rl[:, -1])
 
-    # LEAD_MDN_N 5 = probs (weights) for 5 groups (MDN = Mixture Density Networks https://www.katnoria.com/mdn/)
-    # MDN_GROUP_SIZE 11, SELECTION 3 = 3 groups (lead now, in 2s and 6s); Networks?? or just Mixture Density??
-    # 58 = LEAD_MDN_N * MDN_GROUP_SIZE + SELECTION
-    # Find the distribution that corresponds to the current lead (0s)
+    ''' from fill_lead() in driving079.cc
+    LEAD_MDN_N = 5 probs (weights) for 5 groups (MDN = Mixture Density Networks https://www.katnoria.com/mdn/)
+    Networks?? or just Mixture Density?? SELECTION 3 = 3 groups (lead now, in 2s and 6s),
+    MDN_GROUP_SIZE = 11 = 4 lead_xyva + 4 lead_xyva_std + 3 lead_weights (0, 2, 6s),
+    58 = LEAD_MDN_N * MDN_GROUP_SIZE + SELECTION,
+    Find the distribution that corresponds to the current lead (0s) '''
   lead_reshaped = lead[:, :-3].reshape((-1, 5, 11))   # lead.shape = (1, 58)
     #print("#---  lead_reshaped =", lead_reshaped)  # see sim_output0_11.txt
     #---  lead_reshaped.shape = (1, 5, 11)
