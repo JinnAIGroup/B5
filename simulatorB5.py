@@ -4,7 +4,7 @@ from /home/jinn/YPN/Leon/main.py
 
 vanishing point adjustements (in lanes_image_space, parserB5):
 StartPt, PATH_DISTANCE = 3, 192
-W/2. + 29; H/2. - 40; height = 1.2; lll: + LANE_OFFSET - 0.2; rll: - LANE_OFFSET - 0.7
+W/2. + 29, H/2. - 40, height = 1.2, lll: + LANE_OFFSET - 0.2, rll: - LANE_OFFSET - 0.7
 
 (YPN) jinn@Liu:~/YPN/Leon$ python simulatorB5.py ./fcamera.hevc
 Input:
