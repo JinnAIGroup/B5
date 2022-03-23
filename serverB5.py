@@ -11,7 +11,7 @@ import argparse
 from numpy.lib.format import header_data_from_array_1_0
 from datagenB5 import datagen
 
-BATCH_SIZE = 16
+BATCH_SIZE = 2
 
 if six.PY3:
   buffer_ = memoryview
