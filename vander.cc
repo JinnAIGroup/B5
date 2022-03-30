@@ -6,6 +6,7 @@ jinn@Liu:~/OP079C2/selfdrive/modeld/test/polyfit$ g++ vander.cc -o vander
 jinn@Liu:~/OP079C2/selfdrive/modeld/test/polyfit$ ./vander
 
 References:
+Weighted Least Squares (LS) Fit to Data Points (x_i, y_i) by Polynomials (192 in V + 192 in S = 384)
 [1] Liu, J.-L. Lecture 6 Symmetric SOR (SSOR); http://www.nhcue.edu.tw/~jinnliu/teaching/LiuLec17x/LiuLec17x.htm
 [2] Liu, J.-L. Lecture 7 Conjugate Gradient Method (CG)
 [3] France, A. C. (2004). Condition number of Vandermonde matrix in least-squares polynomial fitting problems.
@@ -17,10 +18,10 @@ References:
 #include <eigen3/Eigen/Dense>
 #include "data.h"
 
-Eigen::Matrix<float, MODEL_PATH_DISTANCE, POLYFIT_DEGREE> vander;
+Eigen::Matrix<float, MODEL_PATH_DISTANCE, POLYFIT_DEGREE> vander;  // MODEL_PATH_DISTANCE=192, POLYFIT_DEGREE=4 (cubic)
 
 void poly_init(){  // https://nhigham.com/2021/06/15/what-is-a-vandermonde-matrix/
-    // Build Vandermonde matrix to fit 192=MODEL_PATH_DISTANCE (x_i, y_i) data points by a polynomial of degree 3=POLYFIT_DEGREE-1
+    // Build Vandermonde matrix to fit 192 (x_i, y_i) data points by a cubic (3=4-1) polynomial
   for(int i = 0; i < MODEL_PATH_DISTANCE; i++) {
     for(int j = 0; j < POLYFIT_DEGREE; j++) {
       vander(i, j) = pow(i, POLYFIT_DEGREE-j-1);
@@ -38,11 +39,11 @@ void poly_fit(float *in_pts, float *in_stds, float *out) {
   Eigen::Map<Eigen::Matrix<float, MODEL_PATH_DISTANCE, 1> > std(in_stds, MODEL_PATH_DISTANCE);
   Eigen::Map<Eigen::Matrix<float, POLYFIT_DEGREE, 1> > p(out, POLYFIT_DEGREE);
 
-    /* Build Least Squares (LS) equations; eigen array()? https://eigen.tuxfamily.org/dox/group__TutorialArrayClass.html
+    /* Build Least Squares equations; eigen array()? https://eigen.tuxfamily.org/dox/group__TutorialArrayClass.html
        Array is a class template taking the same template parameters as Matrix.
        If you need to do linear algebraic operations such as matrix multiplication, then you should use matrices;
        if you need to do coefficient-wise operations, then you should use arrays.
-       Solve Vandermonde system V/S*P = Y/S for P, input: Y, S, V: 192x4, P: 4x1, Y: 192x1, S: 192x1
+       Solve Vandermonde system V/S*P = Y/S for P, input: Y, S, V: 192x4, P: 4x1, Y: 192x1, S: 192x1 (192 in V + 192 in S = 384)
        WVP = WY (W = 1/S: predonditioning or weighting) => weighted LS fit [4] */
   Eigen::Matrix<float, MODEL_PATH_DISTANCE, POLYFIT_DEGREE> lhs = vander.array().colwise() / std.array();  // weighted LS fit [4]
   Eigen::Matrix<float, MODEL_PATH_DISTANCE, 1> rhs = pts.array() / std.array();
