@@ -6,12 +6,11 @@ jinn@Liu:~/OP079C2/selfdrive/modeld/test/polyfit$ g++ vander.cc -o vander
 jinn@Liu:~/OP079C2/selfdrive/modeld/test/polyfit$ ./vander
 
 References:
-Liu, J.-L. http://www.nhcue.edu.tw/~jinnliu/teaching/LiuLec17x/LiuLec17x.htm
-Liu, J.-L. Lecture 6 Symmetric SOR (SSOR)
-Liu, J.-L. Lecture 7 Conjugate Gradient Method (CG)
-Reichel, L. (1991). Fast QR Decomposition of Vandermonde-Like Mmatrices and Polynomial Least Squares Approximation. SIAM journal on matrix analysis and applications, 12(3), 552-564.
-France, A. C. (2004). Condition number of Vandermonde matrix in least-squares polynomial fitting problems.
-Saraswat, J. (2009). A study of Vandermonde-like matrix systems with emphasis on preconditioning and Krylov matrix connection (Doctoral dissertation, University of Kansas).
+[1] Liu, J.-L. Lecture 6 Symmetric SOR (SSOR); http://www.nhcue.edu.tw/~jinnliu/teaching/LiuLec17x/LiuLec17x.htm
+[2] Liu, J.-L. Lecture 7 Conjugate Gradient Method (CG)
+[3] France, A. C. (2004). Condition number of Vandermonde matrix in least-squares polynomial fitting problems.
+[4] Saraswat, J. (2009). A study of Vandermonde-like matrix systems with emphasis on preconditioning and Krylov matrix connection (Doctoral dissertation, University of Kansas).
+[5] Reichel, L. (1991). Fast QR Decomposition of Vandermonde-Like Mmatrices and Polynomial Least Squares Approximation. SIAM journal on matrix analysis and applications, 12(3), 552-564.
 */
 #include <iostream>  // What is the difference between #include <filename> and #include "filename"?
 #include <cmath>
@@ -39,13 +38,13 @@ void poly_fit(float *in_pts, float *in_stds, float *out) {
   Eigen::Map<Eigen::Matrix<float, MODEL_PATH_DISTANCE, 1> > std(in_stds, MODEL_PATH_DISTANCE);
   Eigen::Map<Eigen::Matrix<float, POLYFIT_DEGREE, 1> > p(out, POLYFIT_DEGREE);
 
-    /* Build Least Squares equations; eigen array()? https://eigen.tuxfamily.org/dox/group__TutorialArrayClass.html
+    /* Build Least Squares (LS) equations; eigen array()? https://eigen.tuxfamily.org/dox/group__TutorialArrayClass.html
        Array is a class template taking the same template parameters as Matrix.
        If you need to do linear algebraic operations such as matrix multiplication, then you should use matrices;
        if you need to do coefficient-wise operations, then you should use arrays.
        Solve Vandermonde system V/S*P = Y/S for P, input: Y, S, V: 192x4, P: 4x1, Y: 192x1, S: 192x1
-       WVP = WY (W = 1/S: predonditioning or weighting) */
-  Eigen::Matrix<float, MODEL_PATH_DISTANCE, POLYFIT_DEGREE> lhs = vander.array().colwise() / std.array();
+       WVP = WY (W = 1/S: predonditioning or weighting) => weighted LS fit [4] */
+  Eigen::Matrix<float, MODEL_PATH_DISTANCE, POLYFIT_DEGREE> lhs = vander.array().colwise() / std.array();  // weighted LS fit [4]
   Eigen::Matrix<float, MODEL_PATH_DISTANCE, 1> rhs = pts.array() / std.array();
     /* std::cout << "sizeof(std.array()) = " << sizeof(std.array()) << std::endl;
     std::cout << "std.rows() x std.cols() = " << std.rows() << " x " << std.cols() << std::endl;
@@ -64,10 +63,10 @@ void poly_fit(float *in_pts, float *in_stds, float *out) {
 
     // https://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm
   Eigen::Matrix<float, POLYFIT_DEGREE, 1> scale = 1. / (lhs.array()*lhs.array()).sqrt().colwise().sum();  // L2 norm-like of column vectors
-  lhs = lhs * scale.asDiagonal();  // Jacobi-like preconditioning
+  lhs = lhs * scale.asDiagonal();  // Jacobi-like preconditioning [1], [3]
 
     // Solve inplace
-  Eigen::ColPivHouseholderQR<Eigen::Ref<Eigen::MatrixXf> > qr(lhs);
+  Eigen::ColPivHouseholderQR<Eigen::Ref<Eigen::MatrixXf> > qr(lhs);  // QR [4], [5]
   p = qr.solve(rhs);
   p = p.transpose() * scale.asDiagonal();
 }
