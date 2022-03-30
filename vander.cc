@@ -6,6 +6,9 @@ jinn@Liu:~/OP079C2/selfdrive/modeld/test/polyfit$ g++ vander.cc -o vander
 jinn@Liu:~/OP079C2/selfdrive/modeld/test/polyfit$ ./vander
 
 References:
+Liu, J.-L. http://www.nhcue.edu.tw/~jinnliu/teaching/LiuLec17x/LiuLec17x.htm
+Liu, J.-L. Lecture 6 Symmetric SOR (SSOR)
+Liu, J.-L. Lecture 7 Conjugate Gradient Method (CG)
 Reichel, L. (1991). Fast QR Decomposition of Vandermonde-Like Mmatrices and Polynomial Least Squares Approximation. SIAM journal on matrix analysis and applications, 12(3), 552-564.
 France, A. C. (2004). Condition number of Vandermonde matrix in least-squares polynomial fitting problems.
 Saraswat, J. (2009). A study of Vandermonde-like matrix systems with emphasis on preconditioning and Krylov matrix connection (Doctoral dissertation, University of Kansas).
@@ -59,8 +62,9 @@ void poly_fit(float *in_pts, float *in_stds, float *out) {
     vander.array().colwise().maxCoeff().size() = 4
     vander.array().rowwise().maxCoeff().size() = 192 */
 
-  Eigen::Matrix<float, POLYFIT_DEGREE, 1> scale = 1. / (lhs.array()*lhs.array()).sqrt().colwise().sum();
-  lhs = lhs * scale.asDiagonal();
+    // https://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm
+  Eigen::Matrix<float, POLYFIT_DEGREE, 1> scale = 1. / (lhs.array()*lhs.array()).sqrt().colwise().sum();  // L2 norm-like of column vectors
+  lhs = lhs * scale.asDiagonal();  // Jacobi-like preconditioning
 
     // Solve inplace
   Eigen::ColPivHouseholderQR<Eigen::Ref<Eigen::MatrixXf> > qr(lhs);
@@ -83,4 +87,25 @@ int main(void) {
   std::cout << Eigen::Map<Eigen::VectorXi, 1, Eigen::InnerStride<2> > (array, 6)  // the inner stride has already been passed as template parameter
     << std::endl;  // 1 or 0 the same
   std::cout << "C++ version = " << __cplusplus << std::endl;  // 201402 is C++14
+
+  Eigen::MatrixXf a1(2,2);
+  Eigen::MatrixXf b1(2,2);
+  a1 << 1,2,
+        3,4;
+  b1 << 5,6,
+        7,8;
+  std::cout << "a1 * b1 = " << std::endl << a1 * b1 << std::endl;
+  Eigen::MatrixXf a(3,2);
+  Eigen::MatrixXf b(3,2);
+  a << 1,2,
+       3,4,
+       1,2;
+  b << 3,0,
+       1,2,
+       2,1;
+  std::cout << "b.transpose() = " << std::endl << b.transpose() << std::endl;
+  std::cout << "a * b.transpose() = " << std::endl << a * b.transpose() << std::endl;
+  std::cout << "a.array() * b.array() = " << std::endl << a.array() * b.array() << std::endl;
+  auto c = a.array() * b.array();
+  std::cout << "c.colwise().sum() = " << std::endl << c.colwise().sum() << std::endl;
 }
