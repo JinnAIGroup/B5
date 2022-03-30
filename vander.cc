@@ -4,6 +4,11 @@ from /home/jinn/OP079C2/selfdrive/modeld/test/polyfit/main.cc
 
 jinn@Liu:~/OP079C2/selfdrive/modeld/test/polyfit$ g++ vander.cc -o vander
 jinn@Liu:~/OP079C2/selfdrive/modeld/test/polyfit$ ./vander
+
+References:
+Reichel, L. (1991). Fast QR Decomposition of Vandermonde-Like Mmatrices and Polynomial Least Squares Approximation. SIAM journal on matrix analysis and applications, 12(3), 552-564.
+France, A. C. (2004). Condition number of Vandermonde matrix in least-squares polynomial fitting problems.
+Saraswat, J. (2009). A study of Vandermonde-like matrix systems with emphasis on preconditioning and Krylov matrix connection (Doctoral dissertation, University of Kansas).
 */
 #include <iostream>  // What is the difference between #include <filename> and #include "filename"?
 #include <cmath>
