@@ -1,4 +1,4 @@
-'''  JLL, 2021.8.16 - 2022.3.22
+'''  JLL, 2021.8.16 - 2022.3.28
 /home/jinn/YPN/Leon/parserB5.py
 from /home/jinn/YPN/Leon/common/tools/lib/parser.py
      /home/jinn/OP079C2/selfdrive/modeld/models/driving079.cc
@@ -40,20 +40,20 @@ def parser(outs):
     ''' from fill_path() in driving079.cc '''
   out_dict = {}
   if path is not None:
-    out_dict['path'] = path[:, :PATH_DISTANCE]
+    out_dict['path'] = path[:, :PATH_DISTANCE] + 0.1
     out_dict['path_stds'] = softplus(path[:, PATH_DISTANCE:PATH_DISTANCE*2])
     out_dict['path_valid_len'] = np.fmin(PATH_DISTANCE, np.fmax(5, path[:, PATH_DISTANCE*2]))
       #---  out_dict['path_valid_len'] = 37.5976448059082
       #print("#---  out_dict['path_valid_len'] =", out_dict['path_valid_len'])
 
   if ll is not None:
-    out_dict['lll'] = ll[:, :PATH_DISTANCE] + LANE_OFFSET - 0.2
+    out_dict['lll'] = ll[:, :PATH_DISTANCE] + LANE_OFFSET + 0.1
     out_dict['lll_stds'] = softplus(ll[:, PATH_DISTANCE:PATH_DISTANCE*2])
     out_dict['lll_valid_len'] = np.fmin(PATH_DISTANCE, np.fmax(5, ll[:, PATH_DISTANCE*2]))
     out_dict['lll_prob'] = sigmoid(ll[:, PATH_DISTANCE*2 + 1])
 
   if rl is not None:
-    out_dict['rll'] = rl[:, :PATH_DISTANCE] - LANE_OFFSET - 0.7
+    out_dict['rll'] = rl[:, :PATH_DISTANCE] - LANE_OFFSET - 0.1
     out_dict['rll_stds'] = softplus(rl[:, PATH_DISTANCE:-2])
     out_dict['rll_valid_len'] = np.fmin(PATH_DISTANCE, np.fmax(5, rl[:, -2]))
     out_dict['rll_prob'] = sigmoid(rl[:, -1])

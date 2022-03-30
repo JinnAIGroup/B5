@@ -1,15 +1,19 @@
-'''   YJW, HC, JLL, 2021.8.14 - 2022.3.22
+'''   YJW, HC, JLL, 2021.8.14 - 2022.3.28
 from /home/jinn/YPN/Leon/main.py
      /home/jinn/OP079C2/selfdrive/modeld/models/driving079.cc
 
-vanishing point adjustements (in lanes_image_space, parserB5):
-StartPt, PATH_DISTANCE = 3, 192
-W/2. + 29, H/2. - 40, height = 1.2, lll: + LANE_OFFSET - 0.2, rll: - LANE_OFFSET - 0.7
+fcamera.hevc: vanishing point adjustements (in lanes_image_space, parserB5)
+  StartPt, PATH_DISTANCE = 3, 192
+  W/2. + 29, H/2. - 40, height = 1.2, path: + 0,   lll: - 0.2, rll: - 0.7
+video.hevc:
+  StartPt, PATH_DISTANCE = 4, 192
+  W/2. + 10, H/2. - 58, height = 1.4, path: + 0.1, lll: + 0.1, rll: - 0.5
 
-(YPN) jinn@Liu:~/YPN/Leon$ python simulatorB5.py ./fcamera.hevc
+(YPN) jinn@Liu:~/YPN/Leon$ python simulatorB5.py
 Input:
   /home/jinn/YPN/Leon/models/modelB5.h5
-  /home/jinn/YPN/Leon/fcamera.hevc
+  /home/jinn/dataA/8bfda98c9c9e4291|2020-05-11--03-00-57--61/fcamera.hevc   # Taiwan video
+  /home/jinn/dataB/UHD--2018-08-02--08-34-47--32/video.hevc                 # USA video
     modelB5.h5 imitates supercombo079.keras and predicts driving path, lane lines, etc. on fcamera.hevc
     parserB5.py parses 12 outputs from modelB5.h5 and supercombo079.keras on fcamera.hevc
 Output:
@@ -28,7 +32,9 @@ from common.transformations.model import medmodel_intrinsics
 from common.lanes_image_space import transform_points
 from parserB5 import parser
 
-camerafile = sys.argv[1]   # = fcamera.hevc
+#camerafile = '/home/jinn/dataA/8bfda98c9c9e4291|2020-05-11--03-00-57--61/fcamera.hevc'
+camerafile = '/home/jinn/dataB/UHD--2018-08-02--08-34-47--32/video.hevc'
+
 supercombo = load_model('models/supercombo079.keras', compile = False)   # 12 outs
   #print(supercombo.summary())
 '''
@@ -116,7 +122,7 @@ else:
 fig = plt.figure('OPNet Simulator')
 
 #while True:
-for i in range(1):
+for i in range(10):
   (ret, current_frame) = cap.read()
   if not ret:
        break
@@ -217,11 +223,14 @@ for i in range(1):
     plt.plot(parsed["rll"][0], range(0, PATH_DISTANCE), "b-", linewidth=1)
       #plt.legend(['lll', 'rll', 'path'])
     plt.pause(0.001)
+    input("Press ENTER to close ...")
+    if cv2.waitKey(1000) == 27:   # if ENTER is pressed
+      cv2.destroyAllWindows()
 
-      # plot parsed lines
+    ''' plot parsed lines
     plot_label(frame_no, new_x_left, new_y_left, new_x_path, new_y_path, new_x_right, new_y_right)
     with open("y_true.json", "w") as f:
-        json.dump(parsed, f, cls=NumpyEncoder)
+        json.dump(parsed, f, cls=NumpyEncoder)'''
 
     ''' plot large image for checking the vanishing point '''
     plt.clf()   # clear figure
@@ -237,6 +246,9 @@ for i in range(1):
     plt.plot(new_x_right, new_y_right, label='transformed', color='b')
     plt.imshow(frame)
     plt.pause(0.001)
+    input("Press ENTER to close ...")
+    if cv2.waitKey(1000) == 27:   # if ENTER is pressed
+      cv2.destroyAllWindows()
 
   sYUVs[0] = sYUVs[1]
 

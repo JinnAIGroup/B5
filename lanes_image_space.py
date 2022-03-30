@@ -1,4 +1,4 @@
-''' JLL, 2021.11.21 - 2022.3.22
+''' JLL, 2021.11.21 - 2022.3.28
 by @Shane https://github.com/ShaneSmiskol
 from /home/jinn/openpilot/common/transformations/camera.py
      /home/jinn/OP079C2/selfdrive/ui/paint.cc
@@ -24,13 +24,13 @@ FULL_FRAME_SIZE = (1164, 874)
 W, H, FOCAL = FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1], 910.0
 
 intrinsic_matrix = np.array([
-  [FOCAL,   0.,   W/2. + 29],
-  [  0.,  FOCAL,  H/2. - 40],
+  [FOCAL,   0.,   W/2. + 10],
+  [  0.,  FOCAL,  H/2. - 58],
   [  0.,    0.,     1.]])   # W/2 = 582, H/2 = 437
 
 view_from_device = device_from_view.T
 
-roll, pitch, yaw, height = 0., 0., 0., 1.2
+roll, pitch, yaw, height = 0., 0., 0., 1.4
 
 device_from_road = orient.rot_from_euler([roll, pitch, yaw]).dot(np.diag([1, -1, -1]))
 view_from_road = view_from_device.dot(device_from_road)
@@ -42,7 +42,7 @@ while i < 4*3:
   extrinsic_matrix_eigen[int(i / 4), int(i % 4)] = extrinsic_matrix[i]
   i += 1
 
-StartPt, PATH_DISTANCE = 3, 192
+StartPt, PATH_DISTANCE = 4, 192
 
 def transform_points(x, y):
   new_x = []
