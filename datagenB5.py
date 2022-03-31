@@ -1,4 +1,4 @@
-"""   YPL, JLL, 2021.9.15 - 2022.3.1
+"""   YPL, JLL, 2021.9.15 - 2022.3.2
 Input:
   /home/jinn/dataB/UHD--2018-l08-02--08-34-47--32/yuv.h5
   /home/jinn/dataB/UHD--2018-08-02--08-34-47--32/pathdata.h5
@@ -161,5 +161,5 @@ def datagen(batch_size, camera_files):
             print('#---datagenB5  Ytrue3[0][29:30]   =', Ytrue3[0][29:30])    # lcar's d = 1157+29 = 1186
             plt.plot(Yb)
             plt.show()'''
-            Nplot += 1
+          Nplot += 1
           yield Ximgs, Xin1, Xin2, Xin3, Ytrue0, Ytrue1, Ytrue2, Ytrue3, Ytrue4, Ytrue5, Ytrue6, Ytrue7, Ytrue8, Ytrue9, Ytrue10, Ytrue11
