@@ -59,7 +59,7 @@ path, ll, rl, lead, long_x, long_v, long_a, desire_state, meta, desire_pred, pos
 Press ENTER to exit ...
 
 #---  outs[ 0 ].shape = (1, 385)   # path
---- see poly_fit() in /home/jinn/OP079C2/selfdrive/modeld/models/driving079.cc
+--- see poly_fit() in driving079.cc
 
 #---  outs[ 3 ].shape = (1, 58)    # lead
 --- see fill_lead() in driving079.cc
