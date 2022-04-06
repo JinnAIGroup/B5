@@ -6,7 +6,7 @@ modelB5.dlc = supercombo079.dlc
 
 1. Tasks: temporal state (features) + path planning (PP)
    y_true[2383] = np.hstack((Ytrue0, Ytrue1, Ytrue2, Ytrue3, Ytrue4, Ytrue5, Ytrue6, Ytrue7, Ytrue8, Ytrue9, Ytrue10, Ytrue11))
-   y_pred[2383] = outs[0] + ... + outs[10] in output.txt.
+   y_pred[2383] = outs[0] + ... + outs[10] in sim_output.txt.
 2. Ground Truth from supercombo079.keras:
    outputs = supercombo(inputs) in datagenB5YJ.py
 3. Loss: mean squared error (mse)
