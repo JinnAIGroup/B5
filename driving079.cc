@@ -1,3 +1,5 @@
+// JLL, 2021.6.19 - 2022.4.6
+// /home/jinn/OP079C2/selfdrive/modeld/models/driving079.cc
 
 #include <string.h>
 #include <assert.h>
@@ -65,7 +67,7 @@ void model_init(ModelState* s, cl_device_id device_id, cl_context context, int t
   }
 #endif
 
-  // Build Vandermonde matrix
+    // Build Vandermonde matrix
   for(int i = 0; i < MODEL_PATH_DISTANCE; i++) {
     for(int j = 0; j < POLYFIT_DEGREE - 1; j++) {
       vander(i, j) = pow(i, POLYFIT_DEGREE-j-1);
@@ -80,8 +82,8 @@ ModelDataRaw model_eval_frame(ModelState* s, cl_command_queue q,
 #ifdef DESIRE
   if (desire_in != NULL) {
     for (int i = 0; i < DESIRE_LEN; i++) {
-      // Model decides when action is completed
-      // so desire input is just a pulse triggered on rising edge
+        // Model decides when action is completed
+        // so desire input is just a pulse triggered on rising edge
       if (desire_in[i] - s->prev_desire[i] > .99) {
         s->pulse_desire[i] = desire_in[i];
       } else {
@@ -108,7 +110,7 @@ ModelDataRaw model_eval_frame(ModelState* s, cl_command_queue q,
 
   clEnqueueUnmapMemObject(q, s->frame.net_input, (void*)new_frame_buf, 0, NULL, NULL);
 
-  // net outputs
+    // net outputs
   ModelDataRaw net_outputs;
   net_outputs.path = &s->output[PATH_IDX];
   net_outputs.left_lane = &s->output[LL_IDX];
@@ -117,7 +119,7 @@ ModelDataRaw model_eval_frame(ModelState* s, cl_command_queue q,
   net_outputs.long_x = &s->output[LONG_X_IDX];
   net_outputs.long_v = &s->output[LONG_V_IDX];
   net_outputs.long_a = &s->output[LONG_A_IDX];
-  net_outputs.meta = &s->output[DESIRE_STATE_IDX];
+  net_outputs.meta = &s->output[DESIRE_STATE_IDX];  // POSE_IDX - DESIRE_STATE_IDX = 1859 - 1815 = 44 = 8 + 4 + 32
   net_outputs.pose = &s->output[POSE_IDX];
   return net_outputs;
 }
@@ -130,7 +132,7 @@ void model_free(ModelState* s) {
 }
 
 void poly_fit(float *in_pts, float *in_stds, float *out, int valid_len) {
-  // References to inputs
+    // References to inputs
   Eigen::Map<Eigen::Matrix<float, Eigen::Dynamic, 1> > pts(in_pts, valid_len);
   Eigen::Map<Eigen::Matrix<float, Eigen::Dynamic, 1> > std(in_stds, valid_len);
   Eigen::Map<Eigen::Matrix<float, POLYFIT_DEGREE - 1, 1> > p(out, POLYFIT_DEGREE - 1);
@@ -138,18 +140,18 @@ void poly_fit(float *in_pts, float *in_stds, float *out, int valid_len) {
   float y0 = pts[0];
   pts = pts.array() - y0;
 
-  // Build Least Squares equations
+    // Build Least Squares equations
   Eigen::Matrix<float, Eigen::Dynamic, POLYFIT_DEGREE - 1> lhs = vander.topRows(valid_len).array().colwise() / std.array();
   Eigen::Matrix<float, Eigen::Dynamic, 1> rhs = pts.array() / std.array();
 
-  // Improve numerical stability
+    // Improve numerical stability
   Eigen::Matrix<float, POLYFIT_DEGREE - 1, 1> scale = 1. / (lhs.array()*lhs.array()).sqrt().colwise().sum();
   lhs = lhs * scale.asDiagonal();
 
-  // Solve inplace
+    // Solve inplace
   p = lhs.colPivHouseholderQr().solve(rhs);
 
-  // Apply scale to output
+    // Apply scale to output
   p = p.transpose() * scale.asDiagonal();
   out[3] = y0;
 }
@@ -166,7 +168,7 @@ void fill_path(cereal::ModelData::PathData::Builder path, const float * data, bo
   float prob;
   float valid_len;
 
-  // clamp to 5 and MODEL_PATH_DISTANCE
+    // clamp to 5 and MODEL_PATH_DISTANCE
   valid_len = fmin(MODEL_PATH_DISTANCE, fmax(5, data[MODEL_PATH_DISTANCE*2]));
   for (int i=0; i<MODEL_PATH_DISTANCE; i++) {
     points_arr[i] = data[i] + offset;
@@ -222,7 +224,7 @@ void fill_meta(cereal::ModelData::MetaData::Builder meta, const float * meta_dat
 }
 
 void fill_longi(cereal::ModelData::LongitudinalData::Builder longi, const float * long_x_data, const float * long_v_data, const float * long_a_data) {
-  // just doing 10 vals, 1 every sec for now
+    // just doing 10 vals, 1 every sec for now
   float dist_arr[TIME_DISTANCE/10];
   float speed_arr[TIME_DISTANCE/10];
   float accel_arr[TIME_DISTANCE/10];
@@ -241,7 +243,7 @@ void fill_longi(cereal::ModelData::LongitudinalData::Builder longi, const float 
 
 void model_publish(PubMaster &pm, uint32_t vipc_frame_id, uint32_t frame_id,
                    uint32_t vipc_dropped_frames, float frame_drop, const ModelDataRaw &net_outputs, uint64_t timestamp_eof) {
-  // make msg
+    // make msg
   capnp::MallocMessageBuilder msg;
   cereal::Event::Builder event = msg.initRoot<cereal::Event>();
   event.setLogMonoTime(nanos_since_boot());
@@ -264,7 +266,7 @@ void model_publish(PubMaster &pm, uint32_t vipc_frame_id, uint32_t frame_id,
   fill_longi(longi, net_outputs.long_x, net_outputs.long_v, net_outputs.long_a);
 
 
-  // Find the distribution that corresponds to the current lead
+    // Find the distribution that corresponds to the current lead
   int mdn_max_idx = 0;
   int t_offset = 0;
   for (int i=1; i<LEAD_MDN_N; i++) {
@@ -274,7 +276,8 @@ void model_publish(PubMaster &pm, uint32_t vipc_frame_id, uint32_t frame_id,
   }
   auto lead = framed.initLead();
   fill_lead(lead, net_outputs.lead, mdn_max_idx, t_offset);
-  // Find the distribution that corresponds to the lead in 2s
+  
+    // Find the distribution that corresponds to the lead in 2s
   mdn_max_idx = 0;
   t_offset = 1;
   for (int i=1; i<LEAD_MDN_N; i++) {
