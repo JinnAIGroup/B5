@@ -1,23 +1,20 @@
-JLL, 2021.8.18 - 2022.3.14
+JLL, 2021.8.18 - 2022.4.6
 
 FULL_FRAME_SIZE = (1164, 874)
 W, H = FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1]
 eon_focal_length = FOCAL = 910.0
 cv2.COLOR_BGR2YUV_I420
 
----JLL   frame.shape          =  (874, 1164, 3)   # RGB
----JLL   img_yuv.shape        =  (1311, 1164)     # 874*3//2 = 1311
----JLL   img_yuv.reshape      =  (1311, 1164)     # 1311×1164 = 1,526,004
+---JLL   frame.shape          =  (874, 1164, 3)   # big RGB (see main.py)
+---JLL   img_yuv.shape        =  (1311, 1164)     # big YUV, 874*3//2 = 1311
 ---JLL   imgs.shape           =  (20, 1311, 1164)
----JLL   imgs_med_model.shape =  (20, 384, 512)
----JLL   np.array(imgs_med_model).shape              =  (20, 384, 512)     # 384 = 3 RGB Channels x 128?
----JLL   frame_tensors.shape                         =  (20, 6, 128, 256)  # /128.0?
----JLL   frame_tensors[i:i+2].shape                  =  (2, 6, 128, 256)
----JLL   np.vstack(frame_tensors[i:i+2]).shape       =  (12, 128, 256)
----JLL   np.vstack(frame_tensors[i:i+2])[None].shape =  (1, 12, 128, 256)
----JLL   inputs[ 0 ].shape =  (1, 12, 128, 256)   # 12 = 2 frames x 6 channels (YUV_I420: Y=4, U=1, V=1) Wrong?!
----JLL   inputs[ 1 ].shape =  (1, 8)              # output_size=(512,256)/2 => 128, 256 => (20, 384=128x3?, 512)
----JLL   inputs[ 2 ].shape =  (1, 512)            # 12 = 2 frames x 3 RGB channels x 3 (128)
+---JLL   imgs_med_model.shape =  (20, 384, 512)   # small YUV
+---JLL   frame_tensors.shape                         =  (20, 6, 128, 256)  # small YUV w/ 6 channels
+---JLL   frame_tensors[i:i+2].shape                  =  (2, 6, 128, 256)   # 2 sYUVs
+---JLL   np.vstack(frame_tensors[i:i+2])[None].shape =  (1, 12, 128, 256)  # stack 2 sYUVs
+---JLL   inputs[ 0 ].shape =  (1, 12, 128, 256)   # 12 = 2 frames x 6 channels (YUV_I420: Y=4, U=1, V=1)
+---JLL   inputs[ 1 ].shape =  (1, 8)              # 8 = DESIRE_STATE_IDX in driving079.cc
+---JLL   inputs[ 2 ].shape =  (1, 512)            # rnn state = TEMPORAL_SIZE in driving079.cc
 path, ll, rl, lead, long_x, long_v, long_a, desire_state, meta, desire_pred, pose, state = outs
 #---  outs[ 0 ].shape = (1, 385)   # path
 #---  outs[ 1 ].shape = (1, 386)   # ll
@@ -60,3 +57,10 @@ path, ll, rl, lead, long_x, long_v, long_a, desire_state, meta, desire_pred, pos
 ---JLL   pose.shape             =  (1, 12)
 ---JLL   frame.cv2.resize.shape =  (420, 640, 3)
 Press ENTER to exit ...
+
+#---  outs[ 3 ].shape = (1, 58)    # lead
+--- from fill_lead() in /home/jinn/OP079C2/selfdrive/modeld/models/driving079.cc
+LEAD_MDN_N = 5 probs (weights) for 5 groups (MDN = Mixture Density Networks https://www.katnoria.com/mdn/)
+Networks?? No. or just Mixture Density?? Yes. SELECTION 3 = 3 groups (lead now, in 2s and 6s),
+MDN_GROUP_SIZE = 11 = 4 lead_xyva + 4 lead_xyva_std + 3 lead_weights (0, 2, 6s),
+58 = LEAD_MDN_N * MDN_GROUP_SIZE + SELECTION,
