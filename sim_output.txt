@@ -58,8 +58,11 @@ path, ll, rl, lead, long_x, long_v, long_a, desire_state, meta, desire_pred, pos
 ---JLL   frame.cv2.resize.shape =  (420, 640, 3)
 Press ENTER to exit ...
 
+#---  outs[ 0 ].shape = (1, 385)   # path
+--- see poly_fit() in /home/jinn/OP079C2/selfdrive/modeld/models/driving079.cc
+
 #---  outs[ 3 ].shape = (1, 58)    # lead
---- from fill_lead() in /home/jinn/OP079C2/selfdrive/modeld/models/driving079.cc
+--- see fill_lead() in driving079.cc
 LEAD_MDN_N = 5 probs (weights) for 5 groups (MDN = Mixture Density Networks https://www.katnoria.com/mdn/)
 Networks?? No. or just Mixture Density?? Yes. SELECTION 3 = 3 groups (lead now, in 2s and 6s),
 MDN_GROUP_SIZE = 11 = 4 lead_xyva + 4 lead_xyva_std + 3 lead_weights (0, 2, 6s),
