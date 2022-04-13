@@ -1,7 +1,9 @@
-JLL, 2021.8.18 - 2022.4.6
+JLL, 2021.8.18 - 2022.4.12
 
-FULL_FRAME_SIZE = (1164, 874)
-W, H = FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1]
+output of
+(YPN) jinn@Liu:~/YPN/Leon$ python simulatorB5.py
+
+FULL_FRAME_SIZE = (1164, 874); W, H = FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1]
 eon_focal_length = FOCAL = 910.0
 cv2.COLOR_BGR2YUV_I420
 
@@ -15,7 +17,9 @@ cv2.COLOR_BGR2YUV_I420
 ---JLL   inputs[ 0 ].shape =  (1, 12, 128, 256)   # 12 = 2 frames x 6 channels (YUV_I420: Y=4, U=1, V=1)
 ---JLL   inputs[ 1 ].shape =  (1, 8)              # 8 = DESIRE_STATE_IDX in driving079.cc
 ---JLL   inputs[ 2 ].shape =  (1, 512)            # rnn state = TEMPORAL_SIZE in driving079.cc
+
 path, ll, rl, lead, long_x, long_v, long_a, desire_state, meta, desire_pred, pose, state = outs
+
 #---  outs[ 0 ].shape = (1, 385)   # path
 #---  outs[ 1 ].shape = (1, 386)   # ll
 #---  outs[ 2 ].shape = (1, 386)   # rl
@@ -65,6 +69,12 @@ outs[0][384] = valid_len in driving079.cc = MODEL_PATH_DISTANCE in vander.cc
 #---  outs[ 3 ].shape = (1, 58)    # lead
 --- see fill_lead() in driving079.cc
 LEAD_MDN_N = 5 probs (weights) for 5 groups (MDN = Mixture Density Networks https://www.katnoria.com/mdn/)
-Networks?? No. or just Mixture Density?? Yes. SELECTION 3 = 3 groups (lead now, in 2s and 6s),
+Networks?? Yes in training? SELECTION 3 = output 3 groups (lead now, in 2s and 6s),
 MDN_GROUP_SIZE = 11 = 4 lead_xyva + 4 lead_xyva_std + 3 lead_weights (0, 2, 6s),
 58 = LEAD_MDN_N * MDN_GROUP_SIZE + SELECTION
+
+--- old error
+  /home/jinn/YPN/Leon/common/lanes_image_space.py:90: RuntimeWarning: divide by zero encountered in double_scalars
+    p_image = p_full_frame = np.array([KEp[0] / KEp[2], KEp[1] / KEp[2], 1.])
+  #--- i        = 0
+  #--- frame_no = 2 :  new_x_path =  [564.5524355752472, 570.3962832018733, 572.4756284654528] parsed["path"][0] =  [0.05420419 0.05350511 0.05132698]
