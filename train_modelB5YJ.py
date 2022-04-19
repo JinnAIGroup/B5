@@ -9,7 +9,7 @@ modelB5.dlc = supercombo079.dlc
    y_pred[2383] = outs[0] + ... + outs[10] in sim_output.txt.
 4. Ground Truth from supercombo079.keras:
    outputs = supercombo(inputs) in datagenB5YJ.py
-5. Loss: mean squared error (mse)
+5. Loss: mean squared error (mse) or Huber loss (better)
 
 Input:
   /home/jinn/dataB/UHD--2018-08-02--08-34-47--32/yuv.h5
