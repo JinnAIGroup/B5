@@ -62,7 +62,8 @@ Training History:
      loss: 0.8905 - rmse: 2.9524 - mae: 1.1404
        delta=2.0
      #---  i, count, dataN, count+ranIdx[i] = 255 0 1150 255   Killed
-     255/1148 [=====>........................] - ETA: 49:05 - loss: 1.4773 - rmse: 2.8519 - mae: 1.1421
+     255/1148 [=====>........................] - ETA: 49:05 -
+     loss: 1.4773 - rmse: 2.8519 - mae: 1.1421
   Conclusion: Huber loss with delta=1.0 is the best.
 """
 import os
