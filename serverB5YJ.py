@@ -1,4 +1,4 @@
-"""   YPL, JLL, 2021.9.14 - 2022.4.6
+"""   YPL, JLL, 2021.9.14 - 2022.4.18
 (YPN) jinn@Liu:~/YPN/B5$ python serverB5YJ.py
 """
 import os
@@ -11,7 +11,8 @@ import argparse
 from numpy.lib.format import header_data_from_array_1_0
 from datagenB5YJ import datagen
 
-BATCH_SIZE, EPOCHS = 2, 2
+#BATCH_SIZE, STEPS, EPOCHS = 1, 5, 2
+BATCH_SIZE, STEPS, EPOCHS = 1, 1148, 2
 
 if six.PY3:
   buffer_ = memoryview

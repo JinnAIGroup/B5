@@ -1,4 +1,4 @@
-"""   YJW, YPL, JLL, 2021.9.15 - 2022.4.5
+"""   YJW, YPL, JLL, 2021.9.15 - 2022.4.18
 from /home/jinn/YPN/B5/datagenB5.py
 Input:
   /models/supercombo079.keras
@@ -36,14 +36,14 @@ from tensorflow.keras.models import load_model
 def supercombo_y(Ximgs, Xin1, Xin2, Xin3):
    supercombo = load_model('models/supercombo079.keras', compile=False)
    Ximgs = np.expand_dims(Ximgs, axis=0)
-    #print(np.shape(Ximgs))
+     #print(print("#---  np.shape(Ximgs) =", np.shape(Ximgs))
    Xin1 = np.expand_dims(Xin1, axis=0)
    Xin2 = np.expand_dims(Xin2, axis=0)
    Xin3 = np.expand_dims(Xin3, axis=0)
    inputs = [Ximgs, Xin1, Xin2, Xin3]
 
    outputs = supercombo(inputs)
-    #[print("#---  outputs[", i, "].shape =", np.shape(outputs[i])) for i in range(len(outputs))]
+     #[print("#---  outputs[", i, "].shape =", np.shape(outputs[i])) for i in range(len(outputs))]
    return outputs
 
 def datagen(batch_size, camera_files):
@@ -64,8 +64,8 @@ def datagen(batch_size, camera_files):
   Ytrue10 = np.zeros((batch_size, 12), dtype='float32')
   Ytrue11 = np.zeros((batch_size, 512), dtype='float32')
 
+  Xin1[:, 0] = 1.0   # go straight?
   Xin2[:, 0] = 1.0   # traffic convection = 1.0 = left hand drive like in Taiwan
-  Xin1[:, 0] = 1.0
 
   for cfile in camera_files:
     if os.path.isfile(cfile):
@@ -81,27 +81,12 @@ def datagen(batch_size, camera_files):
       with h5py.File(cfile, "r") as cf5:
         cf5X = cf5['X']
           #---  cf5X.shape = (1150, 6, 128, 256)
-
-        #PWPath    = 192 - pf5P.shape[1] + 1   # PW = pad_width; + 1: ignore "51" = valid_len, i.e., pad it to zero.
-          #---  pf5P.shape[1] = 51
-        PWLLane   = 386
-        PWRLane   = 386
-        #PWLead    = 29 - rf5L.shape[1]
-        PWLongX   = 200
-        PWLongV   = 200
-        PWLongA   = 200
-        PWDesireS = 8
-        PWMeta    = 4
-        PWDesireP = 32
-        PWPose    = 12
-        PWState   = 512
-
         dataN = len(cf5X)
         ranIdx = list(range(dataN-2-batch_size))   # cannot be the last dataN-1
 
+        camra_rnn = 0  # for 1st image in vedio using Xin3 = np.zeros((batch_size, 512)
         for i in range(0, len(ranIdx), batch_size):
           count = 0
-          camra_rnn = 0
           while count < batch_size:
             print("#---  i, count, dataN, count+ranIdx[i] =", i, count, dataN, count+ranIdx[i])
             vsX1 = cf5X[count+ranIdx[i]]
@@ -109,17 +94,19 @@ def datagen(batch_size, camera_files):
               #---  vsX2.shape = (6, 128, 256)
             Ximgs[count] = np.vstack((vsX1, vsX2))   # stack two yuv images i and i+1
               #---  Ximgs[count].shape = (12, 128, 256)
-              #print("Ximgs[count].shape =",np.shape(Ximgs[count]))
-            print("camra_rnn = ", camra_rnn)
+
+              # How to train rnn? See: Understanding Simple Recurrent Neural Networks In Keras
             if camra_rnn != 0:
               Xin3[count] = Xin3_temp
-              print("Xin3_temp", np.shape(Xin3_temp))
+                #---  np.shape(Xin3_temp) = (512,)
 
             outs = supercombo_y(Ximgs[count], Xin1[count], Xin2[count], Xin3[count])
-              #print("outs[11][0]",np.shape(outs[11][0]))
             Xin3_temp = outs[11][0]
+              #print("#---  np.shape(outs[11]) =", np.shape(outs[11]))
+              #---  np.shape(outs[11][0]) = (512,)
+              #---  np.shape(outs[11]) = (1, 512)
             camra_rnn = 1
-              #np.savetxt('rnn_state.txt',outs[11][0], delimiter=',')
+              #np.savetxt('rnn_state.txt', outs[11][0], delimiter=',')
 
             Ytrue0[count] = outs[0]
             Ytrue1[count] = outs[1]
