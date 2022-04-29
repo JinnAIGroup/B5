@@ -1,4 +1,4 @@
-"""   YPL, JLL, 2021.3.22 - 2022.4.28
+"""   YPL, JLL, 2021.3.22 - 2022.4.29
 bz2toh5.py generates net_outputs.lead (58-vector in outputs[3]) from rlog.bz2 for train_modelB5YJ.py
 from /home/jinn/openpilot/tools/lib/bz2toh5B5.py
 read /home/jinn/YPN/yp-Efficient1/bz2toh5_plot.py
