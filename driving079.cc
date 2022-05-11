@@ -1,10 +1,11 @@
-// JLL, 2021.6.19 - 2022.4.6
-// /home/jinn/OP079C2/selfdrive/modeld/models/driving079.cc
+// JLL, 2021.6.19 - 2022.4.25
+//      /home/jinn/OP079C2/selfdrive/modeld/models/driving079.cc
+// read /home/jinn/OP079C2/selfdrive/modeld/test/polyfit/vander.cc
 
-#include <string.h>
-#include <assert.h>
-#include <fcntl.h>
-#include <unistd.h>
+#include <string.h>  // C POSIX library, memmove()
+#include <assert.h>  // C POSIX library
+#include <fcntl.h>  // C POSIX library, file control options, nonstandard C headers for Unix-specific functionality
+#include <unistd.h>  // C POSIX library, unix standard symbolic constants and types, nonstandard C headers for Unix-specific functionality
 #include <eigen3/Eigen/Dense>
 
 #include "common/timing.h"
@@ -33,8 +34,8 @@
 Eigen::Matrix<float, MODEL_PATH_DISTANCE, POLYFIT_DEGREE - 1> vander;
 
 void model_init(ModelState* s, cl_device_id device_id, cl_context context, int temporal) {
-  frame_init(&s->frame, MODEL_WIDTH, MODEL_HEIGHT, device_id, context);   // frame_init = loadyuv_init = loadys_krnl = __kernel void loadys
-  s->input_frames = (float*)calloc(MODEL_FRAME_SIZE * 2, sizeof(float));
+  frame_init(&s->frame, MODEL_WIDTH, MODEL_HEIGHT, device_id, context);  // frame_init = loadyuv_init = loadys_krnl = __kernel void loadys
+  s->input_frames = (float*)calloc(MODEL_FRAME_SIZE * 2, sizeof(float));  // C library function allocates a block of memory for an array of MODEL_FRAME_SIZE*2 elements, each of them sizeof(float) bytes long, and initializes all its bits to zero
 
   const int output_size = OUTPUT_SIZE + TEMPORAL_SIZE;
   s->output = (float*)calloc(output_size, sizeof(float));
@@ -62,7 +63,7 @@ void model_init(ModelState* s, cl_device_id device_id, cl_context context, int t
     if (is_rhd) {
       s->traffic_convention[1] = 1.0;
     } else {
-      s->traffic_convention[0] = 1.0;
+      s->traffic_convention[0] = 1.0;  // left-hand drive vehicles
     }
   }
 #endif
@@ -112,15 +113,15 @@ ModelDataRaw model_eval_frame(ModelState* s, cl_command_queue q,
 
     // net outputs
   ModelDataRaw net_outputs;
-  net_outputs.path = &s->output[PATH_IDX];
-  net_outputs.left_lane = &s->output[LL_IDX];
-  net_outputs.right_lane = &s->output[RL_IDX];
-  net_outputs.lead = &s->output[LEAD_IDX];
-  net_outputs.long_x = &s->output[LONG_X_IDX];
-  net_outputs.long_v = &s->output[LONG_V_IDX];
-  net_outputs.long_a = &s->output[LONG_A_IDX];
-  net_outputs.meta = &s->output[DESIRE_STATE_IDX];  // POSE_IDX-DESIRE_STATE_IDX = 1859-1815 = 44 = 8+4+32
-  net_outputs.pose = &s->output[POSE_IDX];
+  net_outputs.path = &s->output[PATH_IDX];      // 0
+  net_outputs.left_lane = &s->output[LL_IDX];   // 385 + 386
+  net_outputs.right_lane = &s->output[RL_IDX];  // 771 + 386
+  net_outputs.lead = &s->output[LEAD_IDX];      // 1157 + 58
+  net_outputs.long_x = &s->output[LONG_X_IDX];  // 1215 + 200
+  net_outputs.long_v = &s->output[LONG_V_IDX];  // 1415 + 200
+  net_outputs.long_a = &s->output[LONG_A_IDX];  // 1615 + 200
+  net_outputs.meta = &s->output[DESIRE_STATE_IDX];  // 1815 + 8+4+32
+  net_outputs.pose = &s->output[POSE_IDX];      // 1859 + 12
   return net_outputs;
 }
 
@@ -138,7 +139,7 @@ void poly_fit(float *in_pts, float *in_stds, float *out, int valid_len) {
   Eigen::Map<Eigen::Matrix<float, POLYFIT_DEGREE - 1, 1> > p(out, POLYFIT_DEGREE - 1);
 
   float y0 = pts[0];
-  pts = pts.array() - y0;
+  pts = pts.array() - y0;  // does supercombo predict lane width??? no, see sim_output0_11.txt; the polynomial is with respect to pts[0] = 0.
 
     // Build Least Squares equations
   Eigen::Matrix<float, Eigen::Dynamic, POLYFIT_DEGREE - 1> lhs = vander.topRows(valid_len).array().colwise() / std.array();
@@ -153,7 +154,7 @@ void poly_fit(float *in_pts, float *in_stds, float *out, int valid_len) {
 
     // Apply scale to output
   p = p.transpose() * scale.asDiagonal();
-  out[3] = y0;
+  out[3] = y0;  // the polynomial is with respect (back) to y0 != 0.
 }
 
   /* See https://capnproto.org/cxx.html for cereal::ModelData::PathData::Builder path
@@ -183,7 +184,7 @@ void fill_path(cereal::ModelData::PathData::Builder path, const float * data, bo
   poly_fit(points_arr, stds_arr, poly_arr, valid_len);
 
   if (std::getenv("DEBUG")){
-    kj::ArrayPtr<const float> stds(&stds_arr[0], ARRAYSIZE(stds_arr));
+    kj::ArrayPtr<const float> stds(&stds_arr[0], ARRAYSIZE(stds_arr));  # A kj::ArrayPtr is fundamentally a pair of a pointer and a size.
     path.setStds(stds);
 
     kj::ArrayPtr<const float> points(&points_arr[0], ARRAYSIZE(points_arr));
@@ -197,13 +198,18 @@ void fill_path(cereal::ModelData::PathData::Builder path, const float * data, bo
   path.setValidLen(valid_len);
 }
 
+  // modeld.cc PubMaster pm({"model",}) => driving.cc model_init(supercombo.dlc) => fill_lead() =>
+  // model_publish() => pm.send("model", msg) => socketmaster.cc PubMaster::send(1,2) =>
+  // messaging.hpp send(1,2,3) => sockets_->send(1,2) => sockets_ = PubSocket::create(1,2) =>
+  // messaging.cc PubSocket::create(1,2) => PubSocket::create() =>
+  // ZMQPubSocket() => impl_zmq.cc ZMQPubSocket::send(1,2) => zmq.h zmq_send(1,2,3,4)
 void fill_lead(cereal::ModelData::LeadData::Builder lead, const float * data, int mdn_max_idx, int t_offset) {
-  const double x_scale = 10.0;
+  const double x_scale = 10.0;  // scale down in training?
   const double y_scale = 10.0;
 
-  lead.setProb(sigmoid(data[LEAD_MDN_N*MDN_GROUP_SIZE + t_offset]));  // data[5*11+t_offset]
-  lead.setDist(x_scale * data[mdn_max_idx*MDN_GROUP_SIZE]);  // data[0*11, or 1*11, ...]
-  lead.setStd(x_scale * softplus(data[mdn_max_idx*MDN_GROUP_SIZE + MDN_VALS]));  // data[0*11+4, or 1*11+4, ...]
+  lead.setProb(sigmoid(data[LEAD_MDN_N*MDN_GROUP_SIZE + t_offset]));  // data[5*11, 56, or 57]
+  lead.setDist(x_scale * data[mdn_max_idx*MDN_GROUP_SIZE]);  // data[0*11, 1*11, ..., or 4*11]
+  lead.setStd(x_scale * softplus(data[mdn_max_idx*MDN_GROUP_SIZE + MDN_VALS]));  // data[0*11 +4, 1*11 +4, ..., or 4*11 +4]
   lead.setRelY(y_scale * data[mdn_max_idx*MDN_GROUP_SIZE + 1]);
   lead.setRelYStd(y_scale * softplus(data[mdn_max_idx*MDN_GROUP_SIZE + MDN_VALS + 1]));
   lead.setRelVel(data[mdn_max_idx*MDN_GROUP_SIZE + 2]);
@@ -271,8 +277,8 @@ void model_publish(PubMaster &pm, uint32_t vipc_frame_id, uint32_t frame_id,
   int t_offset = 0;
   for (int i=1; i<LEAD_MDN_N; i++) {
     if (net_outputs.lead[i*MDN_GROUP_SIZE + 8 + t_offset] > net_outputs.lead[mdn_max_idx*MDN_GROUP_SIZE + 8 + t_offset]) {
-      mdn_max_idx = i;  // 8: lead_weight in 0s
-    }  // lead[i*MDN_GROUP_SIZE+8+t_offset]: lead[0+8+0], lead[11+8+0], lead[22+8+0] ...
+      mdn_max_idx = i;  // = 0, 1, 2, 3, or 4
+    }  // lead[0, 11, 22, 33, or 44 +8+0] = lead[8, 19, 30, 41, or 52]
   }
   auto lead = framed.initLead();
   fill_lead(lead, net_outputs.lead, mdn_max_idx, t_offset);
@@ -282,9 +288,9 @@ void model_publish(PubMaster &pm, uint32_t vipc_frame_id, uint32_t frame_id,
   t_offset = 1;
   for (int i=1; i<LEAD_MDN_N; i++) {
     if (net_outputs.lead[i*MDN_GROUP_SIZE + 8 + t_offset] > net_outputs.lead[mdn_max_idx*MDN_GROUP_SIZE + 8 + t_offset]) {
-      mdn_max_idx = i;  // 8+1: lead_weight in 2s
-    }  //   lead[i*MDN_GROUP_SIZE+8+t_offset]: lead[0+8+1], lead[11+8+1], lead[22+8+1], ...
-  }  // 6s: lead[i*MDN_GROUP_SIZE+8+t_offset]: lead[0+8+2], lead[11+8+2], lead[22+8+2], lead[33+8+2], lead[44+8+2]
+      mdn_max_idx = i;  // = 0, 1, 2, 3, or 4
+    }  // 2s: lead[0, 11, 22, 33, or 44 +8+1] = lead[9,  20, 31, 42, or 53]
+  }    // 6s: lead[0, 11, 22, 33, or 44 +8+2] = lead[10, 21, 32, 43, or 54]; not used
   auto lead_future = framed.initLeadFuture();
   fill_lead(lead_future, net_outputs.lead, mdn_max_idx, t_offset);
 
