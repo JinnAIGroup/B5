@@ -2,7 +2,7 @@
 # JLL, 2022.5.23 - 24
 # Google: SciPy Hierarchical Clustering and Dendrogram Tutorial
 #         hierarchical agglomerative clustering algorithm example in python
-# Do /openpilot/selfdrive/controls/tests/clustering_tutor.py
+# Do /openpilot/selfdrive/controls/tests/test_clustering_tutor.py
 # (OP082) jinn@Liu:~/openpilot/selfdrive/controls/tests$ python test_clustering.py
 
 import time
@@ -17,7 +17,7 @@ from selfdrive.controls.lib.cluster.fastcluster_py import hclust, ffi
 from selfdrive.controls.lib.cluster.fastcluster_py import cluster_points_centroid
 
 def fcluster(Z, t, criterion='inconsistent', depth=2, R=None, monocrit=None):
-  # supersimplified function to get fast clustering. Got it from scipy
+    # supersimplified function to get fast clustering. Got it from scipy
   Z = np.asarray(Z, order='c')
   n = Z.shape[0] + 1
   T = np.zeros((n,), dtype='i')
