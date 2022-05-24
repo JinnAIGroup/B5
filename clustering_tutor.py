@@ -2,7 +2,7 @@
 # (OP082) jinn@Liu:~/openpilot/selfdrive/controls/tests$ python clustering_tutor.py
 
 import numpy as np
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 from scipy.spatial.distance import pdist
 from scipy.cluster.hierarchy import linkage, cophenet, dendrogram, fcluster
 from scipy.cluster import _hierarchy
