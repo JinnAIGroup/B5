@@ -67,4 +67,4 @@ dendrogram(
     leaf_font_size=12.,  # font size for the x axis labels
 )
 plt.show()
-  # Done. Run /openpilot/selfdrive/controls/tests/test_clustering.py
+  # Done. Do /openpilot/selfdrive/controls/tests/test_clustering.py
