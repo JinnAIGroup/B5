@@ -153,8 +153,7 @@ if __name__ == "__main__":
   plt.clf()
   plt.subplot(121)
   plt.title('Sample Data')
-  m = 'Set1'
-  plt.scatter(X[:, 0], X[:, 1], c=NewIdxs, cmap=m)
+  plt.scatter(X[:, 0], X[:, 1], c=NewIdxs, cmap='Set1')
   plt.colorbar()
 
   plt.subplot(122)
