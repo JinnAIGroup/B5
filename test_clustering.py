@@ -1,7 +1,7 @@
 # pylint: skip-file
 # JLL, 2022.5.24
-# Google: SciPy Hierarchical Clustering and Dendrogram Tutorial
-#         hierarchical agglomerative clustering algorithm example in python
+# Google: hierarchical agglomerative clustering algorithm example in python
+#         SciPy Hierarchical Clustering and Dendrogram Tutorial
 # Do first /openpilot/selfdrive/controls/tests/test_clustering_tutor.py
 # (OP082) jinn@Liu:~/openpilot/selfdrive/controls/tests$ python test_clustering.py
 
@@ -55,11 +55,11 @@ def plot_cluster(pts, idx_old, idx_new):
     plt.figure()
     plt.subplot(1, 2, 1)
     plt.scatter(pts[:, 0], pts[:, 1], c=idx_old, cmap=m)
-    plt.title("Old")
+    plt.title("Old Idxs")
     plt.colorbar()
     plt.subplot(1, 2, 2)
     plt.scatter(pts[:, 0], pts[:, 1], c=idx_new, cmap=m)
-    plt.title("New")
+    plt.title("New Idxs")
     plt.colorbar()
 
     plt.show()
@@ -140,17 +140,22 @@ if __name__ == "__main__":
     # X.shape = (11, 3) = (m samples, n dimensions)
   Y = pdist(X)  # Y.shape = (55,) = C^m_2 = m!/(2!*(m-2)!)
   Z = linkage_vector(X, method='centroid')  # Z.shape = (10, 4)
-  Zidxs = fcluster(Z, 2.5, criterion='distance')
+  OldIdxs = fcluster(Z, 2.5, criterion='distance')
   print("#--- Z =", Z)
-  print("#--- Zidxs =", Zidxs)
-  print("#--- No. of clusters =", len(np.unique(Zidxs)) )
+  NewIdxs = cluster_points_centroid(X, 2.5)
+  print("#--- OldIdxs =", OldIdxs)
+  print("#--- NewIdxs =", NewIdxs)
+  print("#--- No. of old clusters =", len(np.unique(OldIdxs)) )
+  print("#--- No. of new clusters =", len(np.unique(NewIdxs)) )
 
-  plot_cluster(X, CORRECT_LABELS, Zidxs)
+  plot_cluster(X, OldIdxs, NewIdxs)
 
   plt.clf()
   plt.subplot(121)
   plt.title('Sample Data')
-  plt.scatter(X[:, 0], X[:, 1])
+  m = 'Set1'
+  plt.scatter(X[:, 0], X[:, 1], c=NewIdxs, cmap=m)
+  plt.colorbar()
 
   plt.subplot(122)
   plt.title('Hierarchical Clustering Dendrogram')
