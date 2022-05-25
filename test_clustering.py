@@ -2,7 +2,7 @@
 # JLL, 2022.5.24
 # Google: SciPy Hierarchical Clustering and Dendrogram Tutorial
 #         hierarchical agglomerative clustering algorithm example in python
-# Do /openpilot/selfdrive/controls/tests/test_clustering_tutor.py
+# Do first /openpilot/selfdrive/controls/tests/test_clustering_tutor.py
 # (OP082) jinn@Liu:~/openpilot/selfdrive/controls/tests$ python test_clustering.py
 
 import time
