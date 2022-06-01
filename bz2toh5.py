@@ -22,7 +22,7 @@ def mkradarPoints(files):  # make radar Pts from can
       continue
     print('#---  f =', f)
 
-def mkradarLead(files):  # make radarState leadOne,leadTwo from get_lead(,,clusters,sm['model'].lead,)
+def mkradarLead(files):  # make radarState.leadOne, leadTwo from get_lead(,,clusters,sm['model'].lead,)
   for f in files:
     if 'bz2' not in f:
       continue
