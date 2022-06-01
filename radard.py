@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# JLL, 2022.6.1: radar raw (rr) => points (ar_pts) => Track(v_lead,kalman) => tracks => clusters => leadOne,leadTwo
+# JLL, 2022.6.1: can => radar raw (rr) => points (ar_pts) => Track(v_lead,kalman) => tracks => clusters => leadOne,leadTwo
 import importlib
 import math
 from collections import defaultdict, deque
@@ -111,7 +111,7 @@ class RadarD():
       self.ready = True
 
     ar_pts = {}  # all radar points
-    for pt in rr.points:  # radar raw (rr) => points (ar_pts), trackId
+    for pt in rr.points:  # can => radar raw (rr) => points (ar_pts), trackId
       ar_pts[pt.trackId] = [pt.dRel, pt.yRel, pt.vRel, pt.measured]
 
     # *** remove missing points from meta data ***
@@ -121,21 +121,21 @@ class RadarD():
 
     # *** compute the tracks ***
     for ids in ar_pts:
-      rpt = ar_pts[ids]  # rr => ar_pts => rpt
+      rpt = ar_pts[ids]  # can => rr => ar_pts => rpt
 
       # align v_ego by a fixed time to align it with the radar measurement
       v_lead = rpt[2] + self.v_ego_hist[0]  # rr => ar_pts => rpt => v_lead
 
       # create the track if it doesn't exist or it's a new track
       if ids not in self.tracks:
-        self.tracks[ids] = Track(v_lead, self.kalman_params)  # rr => ar_pts => rpt => v_lead => Track(v_lead, kalman) => tracks
+        self.tracks[ids] = Track(v_lead, self.kalman_params)  # can => rr => ar_pts => rpt => v_lead => Track(v_lead, kalman) => tracks
       self.tracks[ids].update(rpt[0], rpt[1], rpt[2], v_lead, rpt[3])
 
     idens = list(sorted(self.tracks.keys()))
     track_pts = list([self.tracks[iden].get_key_for_cluster() for iden in idens])
 
     # If we have multiple points, cluster them
-    if len(track_pts) > 1:  # rr => ar_pts => Track(v_lead, kalman) => tracks => clusters
+    if len(track_pts) > 1:  # can => rr => ar_pts => Track(v_lead, kalman) => tracks => clusters
       cluster_idxs = cluster_points_centroid(track_pts, 2.5)
       clusters = [None] * (max(cluster_idxs) + 1)  # x = [None]*2 => print(x) => [None, None]
 
@@ -167,7 +167,7 @@ class RadarD():
     dat.radarState.radarErrors = list(rr.errors)
     dat.radarState.controlsStateMonoTime = sm.logMonoTime['controlsState']
 
-    if enable_lead:  # rr => ar_pts => Track(v_lead,kalman) => tracks => clusters => leadOne,leadTwo
+    if enable_lead:  # can => rr => ar_pts => Track(v_lead,kalman) => tracks => clusters => leadOne,leadTwo
       dat.radarState.leadOne = get_lead(self.v_ego, self.ready, clusters, sm['model'].lead, low_speed_override=True)
       dat.radarState.leadTwo = get_lead(self.v_ego, self.ready, clusters, sm['model'].leadFuture, low_speed_override=False)
     return dat
@@ -206,7 +206,7 @@ def radard_thread(sm=None, pm=None, can_sock=None):
 
   while 1:
     can_strings = messaging.drain_sock_raw(can_sock, wait_for_one=True)
-    rr = RI.update(can_strings)  # radar raw
+    rr = RI.update(can_strings)  # can => radar raw
 
     if rr is None:
       continue
