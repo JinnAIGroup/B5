@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# JLL, 2022.6.1: radar raw (rr) => points (ar_pts) => Track(v_lead, kalman) => tracks => clusters
+# JLL, 2022.6.1: radar raw (rr) => points (ar_pts) => Track(v_lead,kalman) => tracks => clusters => leadOne,leadTwo
 import importlib
 import math
 from collections import defaultdict, deque
@@ -167,7 +167,7 @@ class RadarD():
     dat.radarState.radarErrors = list(rr.errors)
     dat.radarState.controlsStateMonoTime = sm.logMonoTime['controlsState']
 
-    if enable_lead:
+    if enable_lead:  # rr => ar_pts => Track(v_lead,kalman) => tracks => clusters => leadOne,leadTwo
       dat.radarState.leadOne = get_lead(self.v_ego, self.ready, clusters, sm['model'].lead, low_speed_override=True)
       dat.radarState.leadTwo = get_lead(self.v_ego, self.ready, clusters, sm['model'].leadFuture, low_speed_override=False)
     return dat
