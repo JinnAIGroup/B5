@@ -1,6 +1,6 @@
 """   YPL, JLL, 2021.3.22 - 2022.6.1
 for (Lead)  radarState.leadOne; radarState.leadTwo from raw_log.bz2 by supercombo.keras
-    (Track) to generate 58-vector (5 clusters) in outputs[3]
+    (Points) to generate 58-vector (5 groups of pts) in outputs[3]
 bz2toh5.py generates net_outputs.lead (58-vector in outputs[3]) for train_modelB5YJ.py
 from /home/jinn/openpilot/tools/lib/bz2toh5B5.py
 read /home/jinn/YPN/yp-Efficient1/bz2toh5_plot.py
@@ -16,27 +16,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tools.lib.logreader import LogReader
 
-def mkradarTrack(files):
+def mkradarPoints(files):  # make radar Pts from can
   for f in files:
     if 'bz2' not in f:
       continue
     print('#---  f =', f)
-    lr = LogReader(f)  # <= ents <= event_read_multiple_bytes() <= capnp_log <= log = capnp.load()
-      #---  lr = <tools.lib.logreader.LogReader object at 0x7f8bf0406c10>
-    logs = list(lr)
-    print('#---  logs[0] =', logs[0])
-    print('#---  logs[100] =', logs[100])
-    new_list = [l.which() for l in logs]
-    new_list = list(set(new_list))   # set() creates a set of unique items in Python
-    print('#---  len(logs), len(new_list) =', len(logs), len(new_list))
-      #---  len(logs), len(new_list) = 76267 28
 
-    CS_t = np.array([l.logMonoTime*10**-9 for l in logs if l.which()=='carState'])
-    RS_t = np.array([l.logMonoTime*10**-9 for l in logs if l.which()=='radarState'])
-    print('#---  len(CS_t), len(RS_t) =', len(CS_t), len(RS_t))
-      #---  len(CS_t), len(RS_t) = 6000 1200  (100 Hz, 20 Hz or FPS)
-
-def mkradarLead(files):
+def mkradarLead(files):  # make radarState leadOne,leadTwo from get_lead(,,clusters,sm['model'].lead,)
   for f in files:
     if 'bz2' not in f:
       continue
@@ -131,7 +117,7 @@ if __name__ == '__main__':
     for f in files:
       all_files.append(f)
   mkradarLead(all_files)
-  #mkradarTrack(all_files)
+  #mkradarPoints(all_files)
 '''
   /home/jinn/dataB/.../lead_data.h5 (L)
 #---  len(logs) = 69061

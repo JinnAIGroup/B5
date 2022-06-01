@@ -107,7 +107,7 @@ class RadarD():
       self.active = sm['controlsState'].active
       self.v_ego = sm['controlsState'].vEgo
       self.v_ego_hist.append(self.v_ego)
-    if sm.updated['model']:
+    if sm.updated['mod (rr)el']:
       self.ready = True
 
     ar_pts = {}  # all radar points
@@ -206,7 +206,7 @@ def radard_thread(sm=None, pm=None, can_sock=None):
 
   while 1:
     can_strings = messaging.drain_sock_raw(can_sock, wait_for_one=True)
-    rr = RI.update(can_strings)  # can => radar raw
+    rr = RI.update(can_strings)  # can => radar raw (rr)
 
     if rr is None:
       continue
