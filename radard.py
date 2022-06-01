@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# JLL, 2022.6.1: radar raw (rr) => points (ar_pts) => Track(v_lead, kalman) => tracks => clusters
 import importlib
 import math
 from collections import defaultdict, deque
@@ -7,7 +8,7 @@ import cereal.messaging as messaging
 from cereal import car
 from common.numpy_fast import interp
 from common.params import Params
-from common.realtime import Ratekeeper, Priority, config_realtime_process
+from common.realtime import Ratekeeper, Priority, set_realtime_priority
 from selfdrive.config import RADAR_TO_CAMERA
 from selfdrive.controls.lib.cluster.fastcluster_py import cluster_points_centroid
 from selfdrive.controls.lib.radar_helpers import Cluster, Track
@@ -37,22 +38,22 @@ def laplacian_cdf(x, mu, b):
 
 def match_vision_to_cluster(v_ego, lead, clusters):
   # match vision point to best statistical cluster match
-  offset_vision_dist = lead.xyva[0] - RADAR_TO_CAMERA
+  offset_vision_dist = lead.dist - RADAR_TO_CAMERA
 
   def prob(c):
-    prob_d = laplacian_cdf(c.dRel, offset_vision_dist, lead.xyvaStd[0])
-    prob_y = laplacian_cdf(c.yRel, -lead.xyva[1], lead.xyvaStd[1])
-    prob_v = laplacian_cdf(c.vRel, lead.xyva[2], lead.xyvaStd[2])
+    prob_d = laplacian_cdf(c.dRel, offset_vision_dist, lead.std)
+    prob_y = laplacian_cdf(c.yRel, lead.relY, lead.relYStd)
+    prob_v = laplacian_cdf(c.vRel, lead.relVel, lead.relVelStd)
 
     # This is isn't exactly right, but good heuristic
     return prob_d * prob_y * prob_v
 
-  cluster = max(clusters, key=prob)
+  cluster = max(clusters, key=prob)  # max(a,b,c, ...[, key=func])
 
   # if no 'sane' match is found return -1
   # stationary radar points can be false positives
   dist_sane = abs(cluster.dRel - offset_vision_dist) < max([(offset_vision_dist)*.25, 5.0])
-  vel_sane = (abs(cluster.vRel - lead.xyva[2]) < 10) or (v_ego + cluster.vRel > 3)
+  vel_sane = (abs(cluster.vRel - lead.relVel) < 10) or (v_ego + cluster.vRel > 3)
   if dist_sane and vel_sane:
     return cluster
   else:
@@ -88,8 +89,10 @@ class RadarD():
   def __init__(self, radar_ts, delay=0):
     self.current_time = 0
 
-    self.tracks = defaultdict(dict)
+    self.tracks = defaultdict(dict)  # dict: Python keyword. How does collections.defaultdict work?
     self.kalman_params = KalmanParams(radar_ts)
+
+    self.active = 0
 
     # v_ego
     self.v_ego = 0.
@@ -97,43 +100,44 @@ class RadarD():
 
     self.ready = False
 
-  def update(self, sm, rr, enable_lead):
-    self.current_time = 1e-9*max(sm.logMonoTime.values())
+  def update(self, frame, sm, rr, enable_lead):
+    self.current_time = 1e-9*max([sm.logMonoTime[key] for key in sm.logMonoTime.keys()])
 
-    if sm.updated['carState']:
-      self.v_ego = sm['carState'].vEgo
+    if sm.updated['controlsState']:
+      self.active = sm['controlsState'].active
+      self.v_ego = sm['controlsState'].vEgo
       self.v_ego_hist.append(self.v_ego)
-    if sm.updated['modelV2']:
+    if sm.updated['model']:
       self.ready = True
 
-    ar_pts = {}
-    for pt in rr.points:
+    ar_pts = {}  # all radar points
+    for pt in rr.points:  # radar raw (rr) => points (ar_pts), trackId
       ar_pts[pt.trackId] = [pt.dRel, pt.yRel, pt.vRel, pt.measured]
 
     # *** remove missing points from meta data ***
     for ids in list(self.tracks.keys()):
       if ids not in ar_pts:
-        self.tracks.pop(ids, None)
+        self.tracks.pop(ids, None)  # collections.defaultdict.pop
 
     # *** compute the tracks ***
     for ids in ar_pts:
-      rpt = ar_pts[ids]
+      rpt = ar_pts[ids]  # rr => ar_pts => rpt
 
       # align v_ego by a fixed time to align it with the radar measurement
-      v_lead = rpt[2] + self.v_ego_hist[0]
+      v_lead = rpt[2] + self.v_ego_hist[0]  # rr => ar_pts => rpt => v_lead
 
       # create the track if it doesn't exist or it's a new track
       if ids not in self.tracks:
-        self.tracks[ids] = Track(v_lead, self.kalman_params)
+        self.tracks[ids] = Track(v_lead, self.kalman_params)  # rr => ar_pts => rpt => v_lead => Track(v_lead, kalman) => tracks
       self.tracks[ids].update(rpt[0], rpt[1], rpt[2], v_lead, rpt[3])
 
     idens = list(sorted(self.tracks.keys()))
     track_pts = list([self.tracks[iden].get_key_for_cluster() for iden in idens])
 
     # If we have multiple points, cluster them
-    if len(track_pts) > 1:
+    if len(track_pts) > 1:  # rr => ar_pts => Track(v_lead, kalman) => tracks => clusters
       cluster_idxs = cluster_points_centroid(track_pts, 2.5)
-      clusters = [None] * (max(cluster_idxs) + 1)
+      clusters = [None] * (max(cluster_idxs) + 1)  # x = [None]*2 => print(x) => [None, None]
 
       for idx in range(len(track_pts)):
         cluster_i = cluster_idxs[idx]
@@ -157,23 +161,21 @@ class RadarD():
 
     # *** publish radarState ***
     dat = messaging.new_message('radarState')
-    dat.valid = sm.all_alive_and_valid() and len(rr.errors) == 0
-    radarState = dat.radarState
-    radarState.mdMonoTime = sm.logMonoTime['modelV2']
-    radarState.canMonoTimes = list(rr.canMonoTimes)
-    radarState.radarErrors = list(rr.errors)
-    radarState.carStateMonoTime = sm.logMonoTime['carState']
+    dat.valid = sm.all_alive_and_valid(service_list=['controlsState', 'model'])
+    dat.radarState.mdMonoTime = sm.logMonoTime['model']
+    dat.radarState.canMonoTimes = list(rr.canMonoTimes)
+    dat.radarState.radarErrors = list(rr.errors)
+    dat.radarState.controlsStateMonoTime = sm.logMonoTime['controlsState']
 
     if enable_lead:
-      if len(sm['modelV2'].leads) > 1:
-        radarState.leadOne = get_lead(self.v_ego, self.ready, clusters, sm['modelV2'].leads[0], low_speed_override=True)
-        radarState.leadTwo = get_lead(self.v_ego, self.ready, clusters, sm['modelV2'].leads[1], low_speed_override=False)
+      dat.radarState.leadOne = get_lead(self.v_ego, self.ready, clusters, sm['model'].lead, low_speed_override=True)
+      dat.radarState.leadTwo = get_lead(self.v_ego, self.ready, clusters, sm['model'].leadFuture, low_speed_override=False)
     return dat
 
 
 # fuses camera and radar data for best lead detection
 def radard_thread(sm=None, pm=None, can_sock=None):
-  config_realtime_process(2, Priority.CTRL_LOW)
+  set_realtime_priority(Priority.CTRL_LOW)
 
   # wait for stats about the car to come in from controls
   cloudlog.info("radard is waiting for CarParams")
@@ -184,11 +186,13 @@ def radard_thread(sm=None, pm=None, can_sock=None):
   cloudlog.info("radard is importing %s", CP.carName)
   RadarInterface = importlib.import_module('selfdrive.car.%s.radar_interface' % CP.carName).RadarInterface
 
-  # *** setup messaging
   if can_sock is None:
     can_sock = messaging.sub_sock('can')
+
   if sm is None:
-    sm = messaging.SubMaster(['modelV2', 'carState'])
+    sm = messaging.SubMaster(['model', 'controlsState', 'liveParameters'])
+
+  # *** publish radarState and liveTracks
   if pm is None:
     pm = messaging.PubMaster(['radarState', 'liveTracks'])
 
@@ -202,14 +206,14 @@ def radard_thread(sm=None, pm=None, can_sock=None):
 
   while 1:
     can_strings = messaging.drain_sock_raw(can_sock, wait_for_one=True)
-    rr = RI.update(can_strings)
+    rr = RI.update(can_strings)  # radar raw
 
     if rr is None:
       continue
 
     sm.update(0)
 
-    dat = RD.update(sm, rr, enable_lead)
+    dat = RD.update(rk.frame, sm, rr, enable_lead)
     dat.radarState.cumLagMs = -rk.remaining*1000.
 
     pm.send('radarState', dat)
