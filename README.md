@@ -22,5 +22,5 @@ modelB5.h5 => [simulatorB5.py](https://github.com/JinnAIGroup/B5/blob/main/simul
 [Horace](https://drive.google.com/file/d/15RyzVCR_greK_NXDm_AcLsLmEsqg-e9d/view?usp=sharing)
 ### Step 7. [Install SNPE](https://docs.google.com/document/d/1x1OMnGbGKDapQEBx4xNi2VEwYRL0_XFLZZZDvE8Vefo/edit)
 ### Step 8. Deploy Model
-[h5topbB5.py](https://github.com/JinnAIGroup/B5/blob/main/h5topbB5.py) => modelB5.pb => modelB5.dlc => [modelB5.html](https://drive.google.com/file/d/1L8sWgYKtH77K6Kr3FQMETtAWeQNyyb8R/view) =>
+[h5topbB5.py](https://github.com/JinnAIGroup/B5/blob/main/h5topbB5.py) => modelB5.pb => [modelB5.dlc](https://github.com/commaai/openpilot/tree/v0.7.9/models) => [modelB5.html](https://drive.google.com/file/d/1L8sWgYKtH77K6Kr3FQMETtAWeQNyyb8R/view) =>
 [Self-Driving](https://drive.google.com/file/d/10Rp19QgbRTYRh1dflaPtOj72Tc1aB7pv/view?usp=sharing)
